@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>书签管家 · 设置</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main>
+    <h1>⚙️ 设置</h1>
+
+    <section class="card">
+      <h2>AI 模型（用于智能整理书签）</h2>
+      <p class="hint">API Key 仅保存在本机浏览器（chrome.storage.local），不会同步或上传到任何第三方，仅在调用你所选模型官方接口时使用。</p>
+
+      <label class="field">
+        <span>服务商</span>
+        <select id="provider">
+          <option value="zhipu">智谱 GLM（bigmodel.cn）</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="custom">自定义（OpenAI 兼容接口）</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>API 地址</span>
+        <input id="baseUrl" type="url" placeholder="https://…" />
+      </label>
+
+      <label class="field">
+        <span>模型名称</span>
+        <input id="model" type="text" placeholder="glm-5.3-flash / deepseek-chat" />
+      </label>
+
+      <label class="field">
+        <span>API Key</span>
+        <span class="key-row">
+          <input id="apiKey" type="password" placeholder="sk-…" autocomplete="off" />
+          <button id="toggle-key" class="btn small" type="button">显示</button>
+        </span>
+      </label>
+      <p class="hint" id="key-help"></p>
+
+      <div class="actions">
+        <button id="save" class="btn primary">保存</button>
+        <button id="test" class="btn">测试连接</button>
+        <span id="status" class="status"></span>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

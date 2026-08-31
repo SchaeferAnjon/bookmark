@@ -1,0 +1,23 @@
+# Credentials / API keys
+password.txt
+password*.txt
+*apikey*
+*api_key*
+*api-key*
+.env
+.env.*
+*.key
+*.pem
+credentials*.json
+
+# Videos
+视频/
+videos/
+*.mp4
+
+# OS junk
+.DS_Store
+
+# Project
+node_modules/
+*.zip

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>书签管家 · 整理中心</title>
+  <link rel="stylesheet" href="manager.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">🔖 书签管家</div>
+    <nav>
+      <button class="nav-btn active" data-panel="panel-all">📚 全部书签</button>
+      <button class="nav-btn" data-panel="panel-dead">🧹 失效检测</button>
+      <button class="nav-btn" data-panel="panel-ai">✨ AI 智能整理</button>
+    </nav>
+    <div class="sidebar-foot">
+      <button id="open-options" class="nav-btn">⚙️ 设置</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <!-- 全部书签 -->
+    <section id="panel-all" class="panel">
+      <h1>全部书签 <span id="all-count" class="count"></span></h1>
+      <input id="all-search" type="search" placeholder="按标题 / 网址过滤…" autocomplete="off" />
+      <div id="all-tree" class="tree"></div>
+      <ul id="all-flat" class="flat-list" hidden></ul>
+    </section>
+
+    <!-- 失效检测 -->
+    <section id="panel-dead" class="panel" hidden>
+      <h1>失效链接检测</h1>
+      <p class="hint">逐个访问所有书签地址，找出打不开的链接。「确认失效」指 404/410 或域名无法解析、连接失败；「疑似问题」（403、超时等）可能只是网站反爬，建议人工确认后再删。</p>
+      <div class="toolbar">
+        <button id="scan-btn" class="btn primary">开始扫描</button>
+        <button id="scan-stop" class="btn" hidden>停止</button>
+        <span id="scan-progress" class="progress-text"></span>
+      </div>
+      <div id="scan-bar-wrap" class="bar-wrap" hidden><div id="scan-bar" class="bar"></div></div>
+
+      <div id="dead-results" hidden>
+        <div class="toolbar">
+          <button id="delete-selected" class="btn danger">删除选中 (<span id="sel-count">0</span>)</button>
+          <label class="chk-label"><input type="checkbox" id="check-all-dead" checked /> 全选「确认失效」</label>
+        </div>
+        <h2>❌ 确认失效 <span id="dead-count" class="count"></span></h2>
+        <ul id="dead-list" class="flat-list checkable"></ul>
+        <h2>⚠️ 疑似问题 <span id="warn-count" class="count"></span></h2>
+        <ul id="warn-list" class="flat-list checkable"></ul>
+      </div>
+    </section>
+
+    <!-- AI 整理 -->
+    <section id="panel-ai" class="panel" hidden>
+      <h1>AI 智能整理</h1>
+      <p class="hint">把所有书签发给大模型按主题自动分类，结果先预览、确认后才会移动书签（移动到书签栏下的「AI 整理」新文件夹，原书签不会被删除）。</p>
+      <p id="ai-config-status" class="hint"></p>
+      <div class="toolbar">
+        <button id="ai-start" class="btn primary">开始智能分类</button>
+        <span id="ai-progress" class="progress-text"></span>
+      </div>
+      <div id="ai-preview" hidden>
+        <div class="toolbar">
+          <button id="ai-apply" class="btn primary">✅ 应用整理（移动书签）</button>
+          <span id="ai-apply-status" class="progress-text"></span>
+        </div>
+        <div id="ai-groups"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="manager.js"></script>
+</body>
+</html>

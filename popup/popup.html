@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>书签管家</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="topbar">
+    <input id="search" type="search" placeholder="搜索全部书签…" autocomplete="off" autofocus />
+  </header>
+
+  <section id="results-section" hidden>
+    <ul id="results" class="result-list"></ul>
+    <p id="no-results" class="empty" hidden>没有匹配的书签</p>
+  </section>
+
+  <section id="quick-section">
+    <div class="section-head">
+      <span class="section-title">快捷书签</span>
+      <span class="section-actions">
+        <button id="add-current" class="mini-btn" title="把当前页面加入快捷书签">＋当前页</button>
+        <button id="toggle-edit" class="mini-btn" title="编辑快捷书签">编辑</button>
+      </span>
+    </div>
+    <div id="quick-grid" class="quick-grid"></div>
+    <p id="quick-empty" class="empty" hidden>还没有快捷书签，点「＋当前页」把常用页面固定在这里</p>
+  </section>
+
+  <footer class="bottombar">
+    <button id="open-manager" class="footer-btn primary">🗂 整理书签</button>
+    <button id="open-options" class="footer-btn" title="设置（API Key 等）">⚙️ 设置</button>
+  </footer>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
