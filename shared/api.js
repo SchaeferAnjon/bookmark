@@ -7,6 +7,12 @@ export const PROVIDERS = {
     defaultModel: 'glm-5.3-flash',
     keyUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
   },
+  'zhipu-coding': {
+    name: '智谱 Coding Plan（订阅套餐）',
+    baseUrl: 'https://open.bigmodel.cn/api/coding/paas/v4',
+    defaultModel: 'glm-5.3',
+    keyUrl: 'https://bigmodel.cn/claude-code',
+  },
   deepseek: {
     name: 'DeepSeek',
     baseUrl: 'https://api.deepseek.com',

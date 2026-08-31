@@ -2,6 +2,25 @@
 
 ---
 
+## 2026-08-31 · v0.2.0 — 智谱 Coding Plan 支持 + 开发热重载
+
+### What I did
+- 新增服务商「智谱 Coding Plan（订阅套餐）」：base URL `https://open.bigmodel.cn/api/coding/paas/v4`（经官方文档确认，与按量付费的 `/api/paas/v4` 不同），默认模型 `glm-5.3`。用户在设置页下拉切换即可，已填的 Key 保留。
+- `background.js` 加开发热重载：仅未打包扩展生效（判断 manifest 无 `update_url`），每秒对 13 个源文件做 SHA-1 快照比对，变化即 `chrome.runtime.reload()`；重载前把打开的扩展页 URL 存 storage.local，`onInstalled` 时去重恢复。循环里调 `chrome.runtime.getPlatformInfo()` 重置 SW 30s 空闲计时保持常驻。
+- 通过 web-access CDP proxy 在 `chrome://extensions` 页面上下文调 `chrome.developerPrivate.reload(id)`，帮用户完成了最后一次手动重载；随后改 manifest 版本号验证热重载生效（~3s 自动升到 0.2.0，零报错）。
+
+### Bugs / surprises
+- `chrome://` 页面无法用普通扩展自动化，但 CDP 可以直接 eval 进 WebUI 上下文使用 `chrome.developerPrivate` API——重载/查询扩展状态都走得通，是很好用的开发路径。
+- 未打包扩展的 `fetch(chrome.runtime.getURL(...))` 读的是磁盘实时内容，这是热重载能工作的前提。
+
+### Files touched
+- `shared/api.js` — 新增 zhipu-coding provider
+- `options/options.html` — 下拉加 Coding Plan 选项
+- `background.js` — 热重载 watcher + 页面恢复
+- `manifest.json` — 0.1.0 → 0.2.0
+
+---
+
 ## 2026-08-31 · release — 默认模型改 flash + 建仓推送 GitHub
 
 ### What I did
