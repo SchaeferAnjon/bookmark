@@ -2,6 +2,21 @@
 
 ---
 
+## 2026-08-31 · release — 默认模型改 flash + 建仓推送 GitHub
+
+### What I did
+- 智谱默认模型从 `glm-5.3` 改为 `glm-5.3-flash`（免费/快速档），同步更新 options 占位符和 README 表格。
+- `git init` + `gh repo create`，公开仓库 https://github.com/SchaeferAnjon/bookmark ，首个提交 v0.1.0（21 文件）已推送 main。
+
+### Bugs / surprises
+- 无。
+
+### Files touched
+- `shared/api.js`、`options/options.html`、`README.md` — 默认模型 glm-5.3-flash
+- `.gitignore` — 补充凭据/视频类防泄漏默认清单
+
+---
+
 ## 2026-08-31 · bookmark extension — 从零开发「书签管家」Chrome 扩展 v0.1.0
 
 ### What I did
