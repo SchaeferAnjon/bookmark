@@ -1,5 +1,6 @@
 import { faviconUrl, debounce, collectAllBookmarks } from '../shared/util.js';
 import { getAIConfig, chatComplete, extractJSON, PROVIDERS } from '../shared/api.js';
+import { searchBookmarks } from '../shared/fuzzy.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -122,10 +123,7 @@ allSearch.addEventListener('input', debounce(async () => {
     return;
   }
   const all = await collectAllBookmarks();
-  const lower = q.toLowerCase();
-  const hits = all.filter(
-    (b) => b.title.toLowerCase().includes(lower) || b.url.toLowerCase().includes(lower)
-  ).slice(0, 200);
+  const hits = searchBookmarks(q, all, 200);
   allFlat.textContent = '';
   for (const b of hits) {
     const li = document.createElement('li');

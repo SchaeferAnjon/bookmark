@@ -26,7 +26,7 @@ const WATCH_FILES = [
   'popup/popup.html', 'popup/popup.css', 'popup/popup.js',
   'manager/manager.html', 'manager/manager.css', 'manager/manager.js',
   'options/options.html', 'options/options.css', 'options/options.js',
-  'shared/api.js', 'shared/util.js',
+  'shared/api.js', 'shared/util.js', 'shared/fuzzy.js',
 ];
 
 async function snapshot() {

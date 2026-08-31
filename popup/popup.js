@@ -1,4 +1,5 @@
-import { faviconUrl, debounce } from '../shared/util.js';
+import { faviconUrl, debounce, collectAllBookmarks } from '../shared/util.js';
+import { searchBookmarks } from '../shared/fuzzy.js';
 
 const $ = (s) => document.querySelector(s);
 const searchInput = $('#search');
@@ -12,6 +13,9 @@ const quickEmpty = $('#quick-empty');
 let selectedIndex = -1;
 let currentResults = [];
 
+// 弹窗打开时预取全部书签，之后每次输入在内存里做模糊搜索
+const allBookmarksPromise = collectAllBookmarks();
+
 // ---------- 搜索 ----------
 
 async function doSearch(query) {
@@ -22,8 +26,8 @@ async function doSearch(query) {
     selectedIndex = -1;
     return;
   }
-  const nodes = await chrome.bookmarks.search(query);
-  currentResults = nodes.filter((n) => n.url).slice(0, 50);
+  const all = await allBookmarksPromise;
+  currentResults = searchBookmarks(query, all, 50);
   selectedIndex = currentResults.length ? 0 : -1;
   renderResults();
   resultsSection.hidden = false;

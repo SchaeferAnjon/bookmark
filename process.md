@@ -2,6 +2,25 @@
 
 ---
 
+## 2026-09-01 · v0.3.0 — 模糊搜索 + 相关性排序
+
+### What I did
+- 新建 `shared/fuzzy.js`（纯函数，无 chrome 依赖）：别名归一（c++↔cpp、c#↔csharp、node.js↔nodejs 等，查询和文本两侧同做替换）→ 每个查询词在 标题×3 / 路径×1.5 / URL×1 三字段取最高分（完整子串 100+ 词首/位置加成 > 模糊子序列封顶 70；URL 不做模糊，长 URL 会乱命中）→ 多词全命中才算匹配，按总分降序。
+- 弹窗搜索从 `chrome.bookmarks.search` 换成 打开时预取全部书签 + 内存模糊搜索；管理页过滤同样接入。
+- Node 单测 5 组断言全过；CDP 在用户真实书签上实测：`c++`/`cpp` 结果一致，前四名全为 C++ 相关（菜鸟教程/cppreference/编程c++），弱模糊命中垫底。
+- `package.json` 加 `"type":"module"`（仅供 Node 工具链识别 ESM，扩展本身不用）；fuzzy.js 加入热重载监控列表。
+
+### Bugs / surprises
+- 模糊子序列对 URL 字段噪音极大（任意长 URL 都能凑出 c…p…p），改为 URL 只做子串匹配后干净很多。
+
+### Files touched
+- `shared/fuzzy.js` — 新增
+- `popup/popup.js`、`manager/manager.js` — 接入 searchBookmarks
+- `background.js` — 监控列表加 fuzzy.js
+- `manifest.json`、`package.json` — 0.3.0
+
+---
+
 ## 2026-09-01 · v0.2.1 — 快捷书签格子修复 + 假重载修复
 
 ### What I did
