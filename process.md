@@ -2,6 +2,25 @@
 
 ---
 
+## 2026-09-01 · v0.2.1 — 快捷书签格子修复 + 假重载修复
+
+### What I did
+- 修弹窗被撑爆：grid `repeat(4,1fr)` 的 1fr 实为 minmax(auto,1fr)，不换行长标题的 min-content 会把轨道和整个弹窗撑到 Chrome 800px 上限。改 `minmax(0,1fr)` + `.quick-item{min-width:0}` + `.q-title{width:100%}` 锁死四列等宽。
+- 标题层面也治本：新增 `shortTitle()`（按 `|`、`·`、` - `、`: ` 等分隔符取第一段，≤20 字），添加与渲染时都走它，已存的长标题条目同样生效。
+- 修「点图标弹窗偶尔没反应」：热重载 watcher 之前把文件哈希瞬时读取失败（'missing'）也当成变化 → 触发假 `runtime.reload()`，重载瞬间点图标就无响应。现在 missing 状态一律跳过，且变化需 400ms 后二次快照确认才重载。
+- 全程 CDP 验证：热重载自动升到 0.2.1；开 popup.html 实测 `gridWidth:380, bodyScrollW:380`，截图确认。
+
+### Bugs / surprises
+- chrome://extensions 的 runtimeErrors 里堆了一堆各网站的 preload 警告——Chrome 会把带 `<all_urls>` host 权限的未打包扩展关联到的页面警告归集进来，无害噪音，非本扩展代码错误。
+
+### Files touched
+- `popup/popup.css` — minmax(0,1fr) / min-width:0 / q-title width:100%
+- `popup/popup.js` — shortTitle() 截取主标题
+- `background.js` — watcher 防假重载（missing 跳过 + 二次确认）
+- `manifest.json` — 0.2.0 → 0.2.1
+
+---
+
 ## 2026-08-31 · v0.2.0 — 智谱 Coding Plan 支持 + 开发热重载
 
 ### What I did

@@ -80,6 +80,16 @@ searchInput.addEventListener('keydown', (e) => {
 let quickLinks = [];
 let editing = false;
 
+// 网页标题往往带一长串副标题/站点名，格子里只显示第一段主标题
+function shortTitle(title, url) {
+  let s = (title || '').trim();
+  s = s.split(/\s*[|·•]\s*|\s+[-–—]\s+|\s*[:：]\s+/)[0].trim();
+  if (!s) {
+    try { s = new URL(url).hostname.replace(/^www\./, ''); } catch { s = url; }
+  }
+  return s.slice(0, 20);
+}
+
 async function loadQuickLinks() {
   const data = await chrome.storage.sync.get('quickLinks');
   quickLinks = Array.isArray(data.quickLinks) ? data.quickLinks : [];
@@ -103,7 +113,7 @@ function renderQuickLinks() {
     img.src = faviconUrl(link.url, 64);
     const title = document.createElement('span');
     title.className = 'q-title';
-    title.textContent = link.title || new URL(link.url).hostname;
+    title.textContent = shortTitle(link.title, link.url);
     const del = document.createElement('button');
     del.className = 'q-del';
     del.textContent = '×';
@@ -126,7 +136,7 @@ $('#add-current').addEventListener('click', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab?.url || !/^https?:/.test(tab.url)) return;
   if (quickLinks.some((l) => l.url === tab.url)) return;
-  quickLinks.push({ title: tab.title || tab.url, url: tab.url });
+  quickLinks.push({ title: shortTitle(tab.title, tab.url), url: tab.url });
   await saveQuickLinks();
   renderQuickLinks();
 });

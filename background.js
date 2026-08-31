@@ -55,15 +55,26 @@ async function hotReloadLoop() {
     } catch {
       continue;
     }
-    if (cur !== last) {
-      last = cur;
-      // 记录当前打开的扩展页面，重载后由 onInstalled 恢复
-      const prefix = chrome.runtime.getURL('');
-      const tabs = await chrome.tabs.query({});
-      const reopenUrls = tabs.filter((t) => t.url?.startsWith(prefix)).map((t) => t.url);
-      await chrome.storage.local.set({ reopenUrls });
-      chrome.runtime.reload();
+    if (cur === last) continue;
+    // 文件瞬时读取失败（写入中/系统抖动）不算变化，否则会触发假重载，
+    // 重载瞬间点扩展图标会没反应
+    if (cur.includes('missing')) continue;
+    if (last.includes('missing')) { last = cur; continue; }
+    // 等写入稳定后二次确认，防止半写状态触发重载
+    await new Promise((r) => setTimeout(r, 400));
+    let confirmed;
+    try {
+      confirmed = await snapshot();
+    } catch {
+      continue;
     }
+    if (confirmed !== cur) continue;
+    // 记录当前打开的扩展页面，重载后由 onInstalled 恢复
+    const prefix = chrome.runtime.getURL('');
+    const tabs = await chrome.tabs.query({});
+    const reopenUrls = tabs.filter((t) => t.url?.startsWith(prefix)).map((t) => t.url);
+    await chrome.storage.local.set({ reopenUrls });
+    chrome.runtime.reload();
   }
 }
 
