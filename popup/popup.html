@@ -27,6 +27,16 @@
     <p id="quick-empty" class="empty" hidden>还没有快捷书签，点「＋当前页」把常用页面固定在这里</p>
   </section>
 
+  <section id="group-section" hidden>
+    <div class="group-head">
+      <button id="group-back" class="mini-btn">← 返回</button>
+      <input id="group-name" class="group-name-input" maxlength="12" title="点击修改分组名" />
+      <button id="toggle-edit2" class="mini-btn" title="编辑分组成员">编辑</button>
+    </div>
+    <div id="group-grid" class="quick-grid"></div>
+    <p class="empty">编辑模式下点 × 可把页面移出分组</p>
+  </section>
+
   <footer class="bottombar">
     <button id="open-manager" class="footer-btn primary">🗂 整理书签</button>
     <button id="open-options" class="footer-btn" title="设置（API Key 等）">⚙️ 设置</button>

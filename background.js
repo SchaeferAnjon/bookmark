@@ -1,10 +1,8 @@
 // 后台 service worker：安装初始化 + 开发版热重载
 
+// 注意：不要在这里「初始化」quickLinks——先查后写和其他写入者有竞态，
+// 且各页面本就把缺失值当空数组处理
 chrome.runtime.onInstalled.addListener(async () => {
-  const { quickLinks } = await chrome.storage.sync.get('quickLinks');
-  if (!Array.isArray(quickLinks)) {
-    await chrome.storage.sync.set({ quickLinks: [] });
-  }
   // 热重载后恢复之前打开的扩展页面（manager / options）
   const { reopenUrls } = await chrome.storage.local.get('reopenUrls');
   if (Array.isArray(reopenUrls) && reopenUrls.length) {

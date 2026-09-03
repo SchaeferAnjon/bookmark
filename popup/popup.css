@@ -60,6 +60,8 @@ body {
 .mini-btn:hover { background: var(--accent-soft); }
 .mini-btn.active { background: var(--accent); color: #fff; }
 
+#quick-section { min-height: 118px; }
+
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -105,6 +107,55 @@ body {
   padding: 0;
 }
 .editing .quick-item .q-del { display: block; }
+
+.quick-item.dragging { opacity: 0.4; }
+.quick-item.drop-target {
+  background: var(--accent-soft);
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+
+/* 分组格子：2×2 favicon 拼贴 */
+.collage {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 1fr;
+  gap: 2px;
+  padding: 3px;
+  box-sizing: border-box;
+  background: var(--accent-soft);
+  border-radius: 8px;
+}
+.collage img {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+/* 分组视图 */
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 2px;
+}
+.group-name-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 6px;
+  outline: none;
+}
+.group-name-input:hover { border-color: var(--line); }
+.group-name-input:focus { border-color: var(--accent); background: var(--bg); }
 
 .result-list {
   list-style: none;
