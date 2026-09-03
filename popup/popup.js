@@ -1,6 +1,31 @@
 import { faviconUrl, debounce, collectAllBookmarks } from '../shared/util.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
 
+// ---------- 性能探针：记录每次弹窗打开的时间线（最近 20 次，localStorage）----------
+// moduleStart/paint 都是相对 navigation start 的毫秒。若这些值很小但用户体感很慢，
+// 说明卡顿发生在 navigation 之前（Chrome 侧：进程/SW/协议层），不在页面本身。
+const MODULE_T0 = performance.now();
+window.addEventListener('load', () => {
+  requestAnimationFrame(() => setTimeout(() => {
+    try {
+      const nav = performance.getEntriesByType('navigation')[0];
+      const rec = {
+        at: new Date().toISOString(),
+        moduleStart: Math.round(MODULE_T0),
+        reqStart: Math.round(nav?.requestStart ?? -1),
+        respEnd: Math.round(nav?.responseEnd ?? -1),
+        domInteractive: Math.round(nav?.domInteractive ?? -1),
+        loadEnd: Math.round(nav?.loadEventEnd ?? -1),
+      };
+      for (const p of performance.getEntriesByType('paint')) rec[p.name] = Math.round(p.startTime);
+      const log = JSON.parse(localStorage.getItem('perfLog') || '[]');
+      log.push(rec);
+      while (log.length > 20) log.shift();
+      localStorage.setItem('perfLog', JSON.stringify(log));
+    } catch { /* 探针失败不影响功能 */ }
+  }, 0));
+});
+
 const $ = (s) => document.querySelector(s);
 const searchInput = $('#search');
 const resultsSection = $('#results-section');

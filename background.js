@@ -1,5 +1,16 @@
 // 后台 service worker：安装初始化 + 开发版热重载
 
+// SW 启动日志：如果这里的时间戳频繁增长，说明 SW 在不断被杀/重启（keep-alive 失效），
+// 弹窗慢可能是每次点击都在等 SW 冷启动
+(async () => {
+  try {
+    const { swStarts = [] } = await chrome.storage.local.get('swStarts');
+    swStarts.push(Date.now());
+    while (swStarts.length > 50) swStarts.shift();
+    await chrome.storage.local.set({ swStarts });
+  } catch { /* ignore */ }
+})();
+
 // 注意：不要在这里「初始化」quickLinks——先查后写和其他写入者有竞态，
 // 且各页面本就把缺失值当空数组处理
 chrome.runtime.onInstalled.addListener(async () => {
@@ -21,7 +32,7 @@ const IS_UNPACKED = !('update_url' in chrome.runtime.getManifest());
 const WATCH_FILES = [
   'manifest.json',
   'background.js',
-  'popup/popup.html', 'popup/popup.css', 'popup/popup.js',
+  'popup/popup.html', 'popup/popup.js',
   'manager/manager.html', 'manager/manager.css', 'manager/manager.js',
   'options/options.html', 'options/options.css', 'options/options.js',
   'shared/api.js', 'shared/util.js', 'shared/fuzzy.js',
