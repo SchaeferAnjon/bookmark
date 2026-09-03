@@ -108,6 +108,19 @@ body {
 }
 .editing .quick-item .q-del { display: block; }
 
+.quick-item .q-rename {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 11px;
+  text-align: center;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  padding: 1px 2px;
+  outline: none;
+}
+
 .quick-item.dragging { opacity: 0.4; }
 .quick-item.drop-target {
   background: var(--accent-soft);

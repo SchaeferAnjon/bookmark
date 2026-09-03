@@ -173,6 +173,38 @@ function makeFavicon(url, size) {
   return img;
 }
 
+// 链接显示名：手动改过名的（custom）原样显示，否则套 shortTitle 截取规则
+function displayTitle(link) {
+  return link.custom ? link.title : shortTitle(link.title, link.url);
+}
+
+// 编辑模式下点击格子：标题变输入框就地改名。Enter/失焦保存，Esc 取消
+function startRename(titleEl, link) {
+  const input = document.createElement('input');
+  input.className = 'q-rename';
+  input.maxLength = 20;
+  input.value = displayTitle(link);
+  titleEl.replaceWith(input);
+  input.focus();
+  input.select();
+  let cancelled = false;
+  input.addEventListener('click', (e) => e.stopPropagation());
+  input.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') { cancelled = true; input.blur(); }
+  });
+  input.addEventListener('blur', async () => {
+    const v = input.value.trim();
+    if (!cancelled && v && v !== displayTitle(link)) {
+      link.title = v;
+      link.custom = true;
+      await saveQuickLinks();
+    }
+    renderQuick();
+  });
+}
+
 // 顶层格子：链接
 function linkTile(link, i) {
   const item = document.createElement('div');
@@ -181,14 +213,17 @@ function linkTile(link, i) {
   item.append(makeFavicon(link.url, 64));
   const title = document.createElement('span');
   title.className = 'q-title';
-  title.textContent = shortTitle(link.title, link.url);
+  title.textContent = displayTitle(link);
   item.append(title);
   item.append(makeDelBadge(async () => {
     quickLinks.splice(i, 1);
     await saveQuickLinks();
     renderQuick();
   }));
-  item.addEventListener('click', () => { if (!editing) openUrl(link.url); });
+  item.addEventListener('click', () => {
+    if (editing) startRename(title, link);
+    else openUrl(link.url);
+  });
   attachDnD(item, i);
   return item;
 }
@@ -289,7 +324,7 @@ function renderGroupView() {
     item.append(makeFavicon(link.url, 64));
     const title = document.createElement('span');
     title.className = 'q-title';
-    title.textContent = shortTitle(link.title, link.url);
+    title.textContent = displayTitle(link);
     item.append(title);
     // 编辑模式的 × = 移出分组（放回顶层）；剩 1 个时分组自动解散
     item.append(makeDelBadge(async () => {
@@ -302,7 +337,10 @@ function renderGroupView() {
       await saveQuickLinks();
       renderQuick();
     }));
-    item.addEventListener('click', () => { if (!editing) openUrl(link.url); });
+    item.addEventListener('click', () => {
+      if (editing) startRename(title, link);
+      else openUrl(link.url);
+    });
     groupGrid.append(item);
   });
 }
