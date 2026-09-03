@@ -1,5 +1,9 @@
 // 后台 service worker：安装初始化 + 开发版热重载
 
+// 注册 onStartup：让 Chrome 在浏览器启动时唤醒本 SW（否则重启后 watcher 不会跑，
+// 热重载整条通道失效——2026-09-03 实际踩到）
+chrome.runtime.onStartup.addListener(() => { /* 唤醒即可，逻辑都在顶层 */ });
+
 // SW 启动日志：如果这里的时间戳频繁增长，说明 SW 在不断被杀/重启（keep-alive 失效），
 // 弹窗慢可能是每次点击都在等 SW 冷启动
 (async () => {
@@ -65,12 +69,10 @@ async function hotReloadLoop() {
       continue;
     }
     if (cur === last) continue;
-    // 文件瞬时读取失败（写入中/系统抖动）不算变化，否则会触发假重载，
-    // 重载瞬间点扩展图标会没反应
-    if (cur.includes('missing')) continue;
-    if (last.includes('missing')) { last = cur; continue; }
-    // 等写入稳定后二次确认，防止半写状态触发重载
-    await new Promise((r) => setTimeout(r, 400));
+    // 只用「二次确认稳定」判定真实变化：瞬时读取失败不会连续两次一致，
+    // 而真删除文件是稳定状态、应当照常触发重载
+    // （此前对 missing 一律跳过，导致删除被监控文件后热重载永久卡死）
+    await new Promise((r) => setTimeout(r, 500));
     let confirmed;
     try {
       confirmed = await snapshot();
@@ -88,3 +90,18 @@ async function hotReloadLoop() {
 }
 
 if (IS_UNPACKED) hotReloadLoop();
+
+// 【临时诊断】把探针数据回传本机采集端口，定位弹窗 5 秒白块；问题解决后移除
+async function reportDiag() {
+  if (!IS_UNPACKED) return;
+  try {
+    const data = await chrome.storage.local.get(['swStarts', 'perfLog']);
+    await fetch('http://127.0.0.1:3939/diag', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ t: new Date().toISOString(), ...data }),
+    });
+  } catch { /* 采集端没开就算了 */ }
+}
+reportDiag();
+setInterval(reportDiag, 15000);

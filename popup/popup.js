@@ -22,6 +22,7 @@ window.addEventListener('load', () => {
       log.push(rec);
       while (log.length > 20) log.shift();
       localStorage.setItem('perfLog', JSON.stringify(log));
+      chrome.storage.local.set({ perfLog: log }); // 镜像一份给 SW 侧诊断读取
     } catch { /* 探针失败不影响功能 */ }
   }, 0));
 });
