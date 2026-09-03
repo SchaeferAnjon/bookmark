@@ -23,9 +23,22 @@ window.addEventListener('load', () => {
       while (log.length > 20) log.shift();
       localStorage.setItem('perfLog', JSON.stringify(log));
       chrome.storage.local.set({ perfLog: log }); // 镜像一份给 SW 侧诊断读取
+      showDevInfo(log);
     } catch { /* 探针失败不影响功能 */ }
   }, 0));
 });
+
+// 开发版诊断行（未打包扩展才显示）：版本 + 最近几次打开的首帧耗时 + SW 一小时内启动次数
+async function showDevInfo(log) {
+  const manifest = chrome.runtime.getManifest();
+  if ('update_url' in manifest) return;
+  const el = document.querySelector('#devinfo');
+  const { swStarts = [] } = await chrome.storage.local.get('swStarts');
+  const hourAgo = Date.now() - 3600e3;
+  const recent = log.slice(-5).map((r) => `${r['first-contentful-paint'] ?? r['first-paint'] ?? r.loadEnd}ms`).join(' ');
+  el.textContent = `v${manifest.version} · 首帧(近5次) ${recent} · 模块 ${log[log.length - 1]?.moduleStart}ms · SW启动 ${swStarts.filter((t) => t > hourAgo).length}次/1h`;
+  el.hidden = false;
+}
 
 const $ = (s) => document.querySelector(s);
 const searchInput = $('#search');

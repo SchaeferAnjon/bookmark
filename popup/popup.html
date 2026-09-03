@@ -240,6 +240,14 @@ body {
   color: #fff;
 }
 .footer-btn.primary:hover { filter: brightness(1.08); }
+
+.devinfo {
+  font: 10px/1.4 ui-monospace, Menlo, monospace;
+  color: var(--muted);
+  padding: 0 12px 6px;
+  white-space: pre-wrap;
+  user-select: text;
+}
   </style>
 </head>
 <body>
@@ -278,6 +286,8 @@ body {
     <button id="open-manager" class="footer-btn primary">🗂 整理书签</button>
     <button id="open-options" class="footer-btn" title="设置（API Key 等）">⚙️ 设置</button>
   </footer>
+  <!-- 开发版诊断行：未打包扩展才显示 -->
+  <div id="devinfo" class="devinfo" hidden></div>
 
   <script type="module" src="popup.js"></script>
 </body>
