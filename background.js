@@ -90,18 +90,3 @@ async function hotReloadLoop() {
 }
 
 if (IS_UNPACKED) hotReloadLoop();
-
-// 【临时诊断】把探针数据回传本机采集端口，定位弹窗 5 秒白块；问题解决后移除
-async function reportDiag() {
-  if (!IS_UNPACKED) return;
-  try {
-    const data = await chrome.storage.local.get(['swStarts', 'perfLog']);
-    await fetch('http://127.0.0.1:3939/diag', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ t: new Date().toISOString(), ...data }),
-    });
-  } catch { /* 采集端没开就算了 */ }
-}
-reportDiag();
-setInterval(reportDiag, 15000);
