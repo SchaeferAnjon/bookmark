@@ -179,11 +179,11 @@ function displayTitle(link) {
 }
 
 // 编辑模式下点击格子：标题变输入框就地改名。Enter/失焦保存，Esc 取消
-function startRename(titleEl, link) {
+function startRename(titleEl, value, onCommit) {
   const input = document.createElement('input');
   input.className = 'q-rename';
   input.maxLength = 20;
-  input.value = displayTitle(link);
+  input.value = value;
   titleEl.replaceWith(input);
   input.focus();
   input.select();
@@ -196,12 +196,16 @@ function startRename(titleEl, link) {
   });
   input.addEventListener('blur', async () => {
     const v = input.value.trim();
-    if (!cancelled && v && v !== displayTitle(link)) {
-      link.title = v;
-      link.custom = true;
-      await saveQuickLinks();
-    }
+    if (!cancelled && v && v !== value) await onCommit(v);
     renderQuick();
+  });
+}
+
+function renameLink(titleEl, link) {
+  startRename(titleEl, displayTitle(link), async (v) => {
+    link.title = v;
+    link.custom = true;
+    await saveQuickLinks();
   });
 }
 
@@ -221,7 +225,7 @@ function linkTile(link, i) {
     renderQuick();
   }));
   item.addEventListener('click', () => {
-    if (editing) startRename(title, link);
+    if (editing) renameLink(title, link);
     else openUrl(link.url);
   });
   attachDnD(item, i);
@@ -248,8 +252,16 @@ function groupTile(group, i) {
     renderQuick();
   }));
   item.addEventListener('click', () => {
-    openGroup = i;
-    renderQuick();
+    if (editing) {
+      // 编辑模式：就地改组名；想管理成员就退出编辑再点开分组
+      startRename(title, group.name, async (v) => {
+        group.name = v.slice(0, 12);
+        await saveQuickLinks();
+      });
+    } else {
+      openGroup = i;
+      renderQuick();
+    }
   });
   attachDnD(item, i);
   return item;
@@ -338,7 +350,7 @@ function renderGroupView() {
       renderQuick();
     }));
     item.addEventListener('click', () => {
-      if (editing) startRename(title, link);
+      if (editing) renameLink(title, link);
       else openUrl(link.url);
     });
     groupGrid.append(item);
