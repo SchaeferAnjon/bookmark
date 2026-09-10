@@ -2,6 +2,19 @@
 
 ---
 
+## 2026-09-10 · v0.4.7 — 热重载改按需 + 弹窗启动再瘦身
+
+### What I did
+- 从用户真实 Chrome 的 LevelDB 读出 v0.4.3 埋的 perfLog：HTML 几毫秒就到（respEnd 7ms），但 domInteractive 2.6s / 7.3s / 最长 92.7s，随后取 popup.js 2.5s、favicon 4s——整个扩展进程和资源路径在爬。同时机器 swap 19/20 GB、load 23，`Secure Preferences` 里 SW 注册版本还停在 0.4.6，说明用户 Chrome 里 SW 早已不在跑（改文件也不触发重载）。结论：主因是内存吃紧下扩展渲染进程被换出，点开要从 swap 换回；扩展能做的是把自己在冷启动关键路径上的活压到最少。
+- `background.js` 热重载不再常驻：设置页「开发」卡片勾选后生效，`storage.local.hotReloadUntil` 记到期时间（1 小时自动关），轮询 2s，读取失败一律跳过不重载（2026-08-31 记过的「假 reload 让点图标没反应」这条路彻底堵死）。去掉 onStartup / getPlatformInfo 保活和 swStarts 日志，SW 该闲就闲；弹窗本就不依赖 SW。
+- 弹窗全部书签预取从「打开后 800ms idle」改为「搜索框第一次按键」；诊断行 SW 启动次数换成热重载开关状态。
+- Playwright 加载真实扩展：SW 空闲 5s 内 0 次源文件 fetch；开关开 26 次/5s，关回 0；开着改 util.js 1.5s 后 SW 关闭（reload 触发）；格子渲染、搜索、无报错。headless 下 `runtime.reload()` 后扩展不会回来（旧版同样如此），是 harness 限制，不是回归。
+
+### 未解 / 给用户的话
+- 92s 那次没有单一代码解释，机器层面的换页是最合理的解释；本机常驻 iOS 模拟器、多个 Claude/Codex、微信小程序等，Chrome 22 小时未重启。扩展侧已无常驻负载，剩下的慢是系统的。
+
+---
+
 ## 2026-09-01 · v0.3.0 — 模糊搜索 + 相关性排序
 
 ### What I did

@@ -28,15 +28,15 @@ window.addEventListener('load', () => {
   }, 0));
 });
 
-// 开发版诊断行（未打包扩展才显示）：版本 + 最近几次打开的首帧耗时 + SW 一小时内启动次数
+// 开发版诊断行（未打包扩展才显示）：版本 + 最近几次打开的首帧耗时 + 热重载是否开着
 async function showDevInfo(log) {
   const manifest = chrome.runtime.getManifest();
   if ('update_url' in manifest) return;
   const el = document.querySelector('#devinfo');
-  const { swStarts = [] } = await chrome.storage.local.get('swStarts');
-  const hourAgo = Date.now() - 3600e3;
+  const { hotReloadUntil = 0 } = await chrome.storage.local.get('hotReloadUntil');
   const recent = log.slice(-5).map((r) => `${r['first-contentful-paint'] ?? r['first-paint'] ?? r.loadEnd}ms`).join(' ');
-  el.textContent = `v${manifest.version} · 首帧(近5次) ${recent} · 模块 ${log[log.length - 1]?.moduleStart}ms · SW启动 ${swStarts.filter((t) => t > hourAgo).length}次/1h`;
+  const hot = Date.now() < hotReloadUntil ? '热重载开' : '热重载关';
+  el.textContent = `v${manifest.version} · 首帧(近5次) ${recent} · 模块 ${log[log.length - 1]?.moduleStart}ms · ${hot}`;
   el.hidden = false;
 }
 
@@ -55,18 +55,17 @@ const groupNameInput = $('#group-name');
 let selectedIndex = -1;
 let currentResults = [];
 
-// ---------- 书签预取：推迟到 idle，不挡弹窗首帧 ----------
+// ---------- 书签预取：用户开始打字才拉全部书签 ----------
+// 之前是打开后 800ms 内 idle 预取；机器内存吃紧时这份额外 IO 会和弹窗自身的资源加载抢，
+// 而多数点击只是点快捷格子、根本不搜索。现在第一次按键才取，搜索本身有 120ms 防抖兜底。
 
 let allBookmarksPromise = null;
 function ensureBookmarks() {
   if (!allBookmarksPromise) allBookmarksPromise = collectAllBookmarks();
   return allBookmarksPromise;
 }
-if (typeof requestIdleCallback === 'function') {
-  requestIdleCallback(() => ensureBookmarks(), { timeout: 800 });
-} else {
-  setTimeout(ensureBookmarks, 200);
-}
+searchInput.addEventListener('keydown', () => ensureBookmarks(), { once: true });
+
 
 // ---------- 区块可见性 ----------
 

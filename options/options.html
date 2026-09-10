@@ -48,6 +48,14 @@
         <span id="status" class="status"></span>
       </div>
     </section>
+    <section class="card" id="dev-card" hidden>
+      <h2>开发</h2>
+      <label class="check">
+        <input id="hotReload" type="checkbox" />
+        <span>源码热重载（1 小时后自动关闭）</span>
+      </label>
+      <p class="hint">开启后每 2 秒比对源文件，变化即自动重载扩展。常驻会拖慢弹窗打开，所以只在改代码时开，到期自动关；<span id="hotReloadState"></span></p>
+    </section>
   </main>
   <script type="module" src="options.js"></script>
 </body>

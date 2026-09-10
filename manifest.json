@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "书签管家 BookmarkKeeper",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "搜索全部书签、一键清理失效链接、快捷访问常用页面，支持智谱 GLM / DeepSeek 智能整理书签",
   "permissions": ["bookmarks", "storage", "favicon", "tabs"],
   "host_permissions": ["<all_urls>"],

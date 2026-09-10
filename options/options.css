@@ -70,3 +70,6 @@ h2 { font-size: 16px; margin-top: 0; }
 .status { font-size: 13px; }
 .status.ok { color: #18794e; }
 .status.err { color: #e5484d; }
+
+.check { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; font-size: 14px; cursor: pointer; }
+.check input { width: 16px; height: 16px; accent-color: var(--accent); }

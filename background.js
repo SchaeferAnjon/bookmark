@@ -1,22 +1,10 @@
-// 后台 service worker：安装初始化 + 开发版热重载
+// 后台 service worker：热重载后恢复页面 + 开发热重载（按需开启，1 小时自动关闭）
+//
+// 2026-09-10 教训：此前热重载常驻——每秒 fetch 13 个源文件做 SHA-1，并用 getPlatformInfo
+// 把 SW 永久保活。真机探针显示弹窗 HTML 几毫秒就到，但解析/取 popup.js/取 favicon 各要
+// 数秒（最长 92 秒），且读取失败时假触发 runtime.reload() 让点图标完全没反应。
+// 弹窗本身完全不依赖 SW（只直接调 chrome.storage/bookmarks/tabs），所以 SW 该闲就闲。
 
-// 注册 onStartup：让 Chrome 在浏览器启动时唤醒本 SW（否则重启后 watcher 不会跑，
-// 热重载整条通道失效——2026-09-03 实际踩到）
-chrome.runtime.onStartup.addListener(() => { /* 唤醒即可，逻辑都在顶层 */ });
-
-// SW 启动日志：如果这里的时间戳频繁增长，说明 SW 在不断被杀/重启（keep-alive 失效），
-// 弹窗慢可能是每次点击都在等 SW 冷启动
-(async () => {
-  try {
-    const { swStarts = [] } = await chrome.storage.local.get('swStarts');
-    swStarts.push(Date.now());
-    while (swStarts.length > 50) swStarts.shift();
-    await chrome.storage.local.set({ swStarts });
-  } catch { /* ignore */ }
-})();
-
-// 注意：不要在这里「初始化」quickLinks——先查后写和其他写入者有竞态，
-// 且各页面本就把缺失值当空数组处理
 chrome.runtime.onInstalled.addListener(async () => {
   // 热重载后恢复之前打开的扩展页面（manager / options）
   const { reopenUrls } = await chrome.storage.local.get('reopenUrls');
@@ -29,8 +17,9 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 });
 
-// ---------- 开发热重载 ----------
-// 仅未打包（开发者模式加载）的扩展生效：磁盘文件一变，自动整体重载，无需手动刷新。
+// ---------- 开发热重载（可选） ----------
+// 仅未打包（开发者模式加载）的扩展可用；在设置页勾选后生效，storage.local.hotReloadUntil
+// 记录到期时间（最多 1 小时），到期或取消勾选即停止，SW 随后正常空闲退出。
 const IS_UNPACKED = !('update_url' in chrome.runtime.getManifest());
 
 const WATCH_FILES = [
@@ -44,49 +33,52 @@ const WATCH_FILES = [
 
 async function snapshot() {
   const parts = await Promise.all(WATCH_FILES.map(async (f) => {
-    try {
-      const res = await fetch(chrome.runtime.getURL(f), { cache: 'no-store' });
-      const buf = await res.arrayBuffer();
-      const digest = await crypto.subtle.digest('SHA-1', buf);
-      return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
-    } catch {
-      return 'missing';
-    }
+    const res = await fetch(chrome.runtime.getURL(f), { cache: 'no-store' });
+    const buf = await res.arrayBuffer();
+    const digest = await crypto.subtle.digest('SHA-1', buf);
+    return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
   }));
   return parts.join('|');
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function hotReloadEnabled() {
+  const { hotReloadUntil = 0 } = await chrome.storage.local.get('hotReloadUntil');
+  return Date.now() < hotReloadUntil;
+}
+
+let watching = false;
 async function hotReloadLoop() {
-  let last = await snapshot();
-  for (;;) {
-    await new Promise((r) => setTimeout(r, 1000));
-    // 调一次扩展 API 重置 service worker 的 30s 空闲计时，保证 watcher 常驻
-    chrome.runtime.getPlatformInfo();
-    let cur;
-    try {
-      cur = await snapshot();
-    } catch {
-      continue;
+  if (watching || !IS_UNPACKED) return;
+  watching = true;
+  try {
+    if (!(await hotReloadEnabled())) return;
+    let last = await snapshot().catch(() => null);
+    while (await hotReloadEnabled()) {
+      await sleep(2000);
+      // 任何读取失败一律跳过：宁可漏掉一次变化，也不能假触发 reload 把弹窗弄没
+      const cur = await snapshot().catch(() => null);
+      if (cur === null || last === null) { last = cur ?? last; continue; }
+      if (cur === last) continue;
+      await sleep(500);
+      const confirmed = await snapshot().catch(() => null);
+      if (confirmed !== cur) continue;
+      const prefix = chrome.runtime.getURL('');
+      const tabs = await chrome.tabs.query({});
+      const reopenUrls = tabs.filter((t) => t.url?.startsWith(prefix)).map((t) => t.url);
+      await chrome.storage.local.set({ reopenUrls });
+      chrome.runtime.reload();
+      return;
     }
-    if (cur === last) continue;
-    // 只用「二次确认稳定」判定真实变化：瞬时读取失败不会连续两次一致，
-    // 而真删除文件是稳定状态、应当照常触发重载
-    // （此前对 missing 一律跳过，导致删除被监控文件后热重载永久卡死）
-    await new Promise((r) => setTimeout(r, 500));
-    let confirmed;
-    try {
-      confirmed = await snapshot();
-    } catch {
-      continue;
-    }
-    if (confirmed !== cur) continue;
-    // 记录当前打开的扩展页面，重载后由 onInstalled 恢复
-    const prefix = chrome.runtime.getURL('');
-    const tabs = await chrome.tabs.query({});
-    const reopenUrls = tabs.filter((t) => t.url?.startsWith(prefix)).map((t) => t.url);
-    await chrome.storage.local.set({ reopenUrls });
-    chrome.runtime.reload();
+  } finally {
+    watching = false;
   }
 }
 
-if (IS_UNPACKED) hotReloadLoop();
+if (IS_UNPACKED) {
+  hotReloadLoop();
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes.hotReloadUntil) hotReloadLoop();
+  });
+}

@@ -67,6 +67,29 @@ $('#test').addEventListener('click', async () => {
   }
 });
 
+// ---------- 开发：热重载开关（仅未打包扩展显示）----------
+const HOT_RELOAD_MS = 3600e3;
+const hotReloadEl = $('#hotReload');
+const hotReloadState = $('#hotReloadState');
+
+async function renderHotReload() {
+  const { hotReloadUntil = 0 } = await chrome.storage.local.get('hotReloadUntil');
+  const on = Date.now() < hotReloadUntil;
+  hotReloadEl.checked = on;
+  hotReloadState.textContent = on
+    ? `当前已开启，${new Date(hotReloadUntil).toLocaleTimeString()} 自动关闭`
+    : '当前未开启';
+}
+
+if (!('update_url' in chrome.runtime.getManifest())) {
+  $('#dev-card').hidden = false;
+  hotReloadEl.addEventListener('change', async () => {
+    await chrome.storage.local.set({ hotReloadUntil: hotReloadEl.checked ? Date.now() + HOT_RELOAD_MS : 0 });
+    renderHotReload();
+  });
+  renderHotReload();
+}
+
 (async function init() {
   const cfg = await getAIConfig();
   providerEl.value = cfg.provider;
