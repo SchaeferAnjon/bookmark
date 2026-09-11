@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "书签管家 BookmarkKeeper",
-  "version": "0.5.3",
-  "description": "搜索全部书签、一键清理失效链接、快捷访问常用页面，支持智谱 GLM / DeepSeek 智能整理书签",
+  "version": "0.6.0",
+  "description": "新标签页：打开标签按域名整理 + 搜索全部书签 + 快捷书签分组；一键清理失效链接；支持智谱 GLM / DeepSeek 智能整理书签",
   "permissions": ["bookmarks", "storage", "favicon", "tabs", "contextMenus"],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -13,6 +13,7 @@
     "default_popup": "popup/popup.html",
     "default_title": "书签管家"
   },
+  "chrome_url_overrides": { "newtab": "newtab/index.html" },
   "options_page": "options/options.html",
   "commands": {
     "add-quick-link": {
@@ -20,7 +21,6 @@
       "description": "把当前页加入快捷书签（不开弹窗）"
     }
   },
-  "externally_connectable": { "ids": ["ppkmiecmlahlafooncahbmhlkhpoheij"] },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

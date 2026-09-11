@@ -1,3 +1,5 @@
+import { shortTitle } from './shared/util.js';
+
 // 后台 service worker：热重载后恢复页面 + 开发热重载（按需开启，1 小时自动关闭）
 //
 // 2026-09-10 教训：此前热重载常驻——每秒 fetch 13 个源文件做 SHA-1，并用 getPlatformInfo
@@ -29,6 +31,7 @@ const WATCH_FILES = [
   'manager/manager.html', 'manager/manager.css', 'manager/manager.js',
   'options/options.html', 'options/options.css', 'options/options.js',
   'shared/api.js', 'shared/util.js', 'shared/fuzzy.js',
+  'newtab/index.html', 'newtab/app.js', 'newtab/style.css', 'newtab/bookmarks-panel.js',
 ];
 
 async function snapshot() {
@@ -83,58 +86,35 @@ if (IS_UNPACKED) {
   });
 }
 
-// ---------- 对外接口：Tab Out 新标签页 ----------
-// manifest.externally_connectable 只放行 Tab Out（解包路径 ~/Documents/chrome_plugin/tab-out/extension）
-// 的扩展 ID。外部消息会唤醒 SW，回完即闲，不影响弹窗。
-// 搜索放在这边做而不是把 fuzzy.js 给对方 import：扩展页 CSP 是 script-src 'self'，
-// 跨扩展加载脚本会被拦；走消息则算法只有一份。
-import { collectAllBookmarks, shortTitle } from './shared/util.js';
-import { searchBookmarks } from './shared/fuzzy.js';
-
-const isGroup = (it) => it?.type === 'group'; // 与 popup.js 一致：分组以 type 标记
-let allBookmarksPromise = null;
-const invalidateBookmarks = () => { allBookmarksPromise = null; };
-for (const ev of ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered']) {
-  chrome.bookmarks[ev].addListener(invalidateBookmarks);
+// ---------- 图标角标：打开的网页标签数（来自 Tab Out，MIT）----------
+// 绿 1–10、琥珀 11–20、红 21+；0 个不显示。
+async function updateBadge() {
+  try {
+    const tabs = await chrome.tabs.query({});
+    const count = tabs.filter((t) => /^(https?|file|ftp):/.test(t.url || '')).length;
+    await chrome.action.setBadgeText({ text: count > 0 ? String(count) : '' });
+    if (count === 0) return;
+    await chrome.action.setBadgeBackgroundColor({ color: count <= 10 ? '#3d7a4a' : count <= 20 ? '#b8892e' : '#b35a5a' });
+  } catch {
+    chrome.action.setBadgeText({ text: '' });
+  }
 }
-
-chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
-  if (msg?.type === 'getQuickLinks') {
-    chrome.storage.sync.get('quickLinks').then(({ quickLinks }) => {
-      sendResponse({ quickLinks: Array.isArray(quickLinks) ? quickLinks : [] });
-    });
-    return true;
-  }
-  if (msg?.type === 'setQuickLinks') {
-    // Tab Out 页面上拖拽合并 / 编辑后的整份写回；结构校验一下再落盘
-    const ok = Array.isArray(msg.quickLinks) && msg.quickLinks.every((it) =>
-      it && typeof it === 'object' && (isGroup(it)
-        ? typeof it.name === 'string' && Array.isArray(it.items) && it.items.every((l) => l && typeof l.url === 'string')
-        : typeof it.url === 'string'));
-    if (!ok) { sendResponse({ ok: false, error: 'bad shape' }); return false; }
-    chrome.storage.sync.set({ quickLinks: msg.quickLinks })
-      .then(() => sendResponse({ ok: true }))
-      .catch((e) => sendResponse({ ok: false, error: String(e?.message || e) }));
-    return true;
-  }
-  if (msg?.type === 'searchBookmarks') {
-    allBookmarksPromise ??= collectAllBookmarks();
-    allBookmarksPromise.then((all) => {
-      sendResponse({ results: searchBookmarks(String(msg.query || ''), all, Number(msg.limit) || 50) });
-    });
-    return true;
-  }
-  return false;
-});
+chrome.runtime.onInstalled.addListener(updateBadge);
+chrome.runtime.onStartup.addListener(updateBadge);
+chrome.tabs.onCreated.addListener(updateBadge);
+chrome.tabs.onRemoved.addListener(updateBadge);
+chrome.tabs.onUpdated.addListener((_id, info) => { if (info.url || info.status === 'complete') updateBadge(); });
+updateBadge();
 
 // ---------- 不开弹窗加快捷书签：快捷键 Alt+Shift+B / 页面右键菜单 ----------
 // 弹窗每次要重开渲染进程，机器吃紧时要等好几秒；SW 只是几 KB 的脚本，唤醒即写入。
-// 反馈用图标角标：✓ 已加入，= 已存在，× 不能加（chrome:// 之类）。
+// 反馈用图标角标：✓ 已加入，= 已存在，× 不能加（chrome:// 之类）；1.5 秒后恢复标签计数。
+const isGroup = (it) => it?.type === 'group'; // 与 popup.js 一致：分组以 type 标记
 
 async function flashBadge(text, color) {
   await chrome.action.setBadgeBackgroundColor({ color });
   await chrome.action.setBadgeText({ text });
-  setTimeout(() => chrome.action.setBadgeText({ text: '' }), 1500);
+  setTimeout(updateBadge, 1500);
 }
 
 export async function addQuickLink(tab) {
