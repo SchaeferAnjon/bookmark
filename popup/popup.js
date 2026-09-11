@@ -1,4 +1,4 @@
-import { faviconUrl, debounce, collectAllBookmarks } from '../shared/util.js';
+import { faviconUrl, debounce, collectAllBookmarks, shortTitle } from '../shared/util.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
 
 // ---------- 性能探针：记录每次弹窗打开的时间线（最近 20 次，localStorage）----------
@@ -65,7 +65,6 @@ function ensureBookmarks() {
   return allBookmarksPromise;
 }
 searchInput.addEventListener('keydown', () => ensureBookmarks(), { once: true });
-
 
 // ---------- 区块可见性 ----------
 
@@ -150,16 +149,6 @@ let openGroup = -1; // 当前打开的分组在 quickLinks 里的索引
 let dragIndex = -1; // 正在拖动的格子索引（仅顶层）
 
 const isGroup = (it) => it?.type === 'group';
-
-// 网页标题往往带一长串副标题/站点名，格子里只显示第一段主标题
-function shortTitle(title, url) {
-  let s = (title || '').trim();
-  s = s.split(/\s*[|·•]\s*|\s+[-–—]\s+|\s*[:：]\s+/)[0].trim();
-  if (!s) {
-    try { s = new URL(url).hostname.replace(/^www\./, ''); } catch { s = url; }
-  }
-  return s.slice(0, 20);
-}
 
 // localStorage 镜像：弹窗打开时同步渲染首帧，chrome.storage 异步校准
 function readCache() {

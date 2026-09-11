@@ -88,7 +88,7 @@ if (IS_UNPACKED) {
 // 的扩展 ID。外部消息会唤醒 SW，回完即闲，不影响弹窗。
 // 搜索放在这边做而不是把 fuzzy.js 给对方 import：扩展页 CSP 是 script-src 'self'，
 // 跨扩展加载脚本会被拦；走消息则算法只有一份。
-import { collectAllBookmarks } from './shared/util.js';
+import { collectAllBookmarks, shortTitle } from './shared/util.js';
 import { searchBookmarks } from './shared/fuzzy.js';
 
 let allBookmarksPromise = null;
@@ -112,4 +112,45 @@ chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
     return true;
   }
   return false;
+});
+
+// ---------- 不开弹窗加快捷书签：快捷键 Alt+Shift+B / 页面右键菜单 ----------
+// 弹窗每次要重开渲染进程，机器吃紧时要等好几秒；SW 只是几 KB 的脚本，唤醒即写入。
+// 反馈用图标角标：✓ 已加入，= 已存在，× 不能加（chrome:// 之类）。
+const isGroup = (it) => it?.type === 'group'; // 与 popup.js 一致：分组以 type 标记
+
+async function flashBadge(text, color) {
+  await chrome.action.setBadgeBackgroundColor({ color });
+  await chrome.action.setBadgeText({ text });
+  setTimeout(() => chrome.action.setBadgeText({ text: '' }), 1500);
+}
+
+export async function addQuickLink(tab) {
+  if (!tab?.url || !/^https?:/.test(tab.url)) { await flashBadge('×', '#b35a5a'); return 'invalid'; }
+  const { quickLinks: raw } = await chrome.storage.sync.get('quickLinks');
+  const quickLinks = Array.isArray(raw) ? raw : [];
+  const exists = quickLinks.some((it) => (isGroup(it) ? it.items.some((l) => l.url === tab.url) : it.url === tab.url));
+  if (exists) { await flashBadge('=', '#9a918a'); return 'exists'; }
+  quickLinks.push({ title: shortTitle(tab.title, tab.url), url: tab.url });
+  await chrome.storage.sync.set({ quickLinks });
+  await flashBadge('✓', '#3d7a4a');
+  return 'added';
+}
+globalThis.addQuickLink = addQuickLink; // 供端到端测试从 SW 直接调用
+
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command !== 'add-quick-link') return;
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  await addQuickLink(tab);
+});
+
+const MENU_ID = 'bk-add-quick-link';
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({ id: MENU_ID, title: '加入快捷书签', contexts: ['page', 'frame', 'link'] }, () => chrome.runtime.lastError);
+});
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId !== MENU_ID) return;
+  // 在链接上右键 → 收藏那个链接；否则收藏当前页
+  const target = info.linkUrl ? { url: info.linkUrl, title: info.selectionText || info.linkUrl } : tab;
+  await addQuickLink(target);
 });

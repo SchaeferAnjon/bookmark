@@ -36,3 +36,13 @@ export async function collectAllBookmarks() {
   })(tree, '');
   return list;
 }
+
+// 快捷书签显示名：取标题第一段（去掉「| 站名」「- 站名」之类后缀），空则用域名，最多 20 字
+export function shortTitle(title, url) {
+  let s = (title || '').trim();
+  s = s.split(/\s*[|·•]\s*|\s+[-–—]\s+|\s*[:：]\s+/)[0].trim();
+  if (!s) {
+    try { s = new URL(url).hostname.replace(/^www\./, ''); } catch { s = url; }
+  }
+  return s.slice(0, 20);
+}
