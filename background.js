@@ -83,13 +83,33 @@ if (IS_UNPACKED) {
   });
 }
 
-// ---------- 对外接口：Tab Out 新标签页读取快捷链接 ----------
+// ---------- 对外接口：Tab Out 新标签页 ----------
 // manifest.externally_connectable 只放行 Tab Out（解包路径 ~/Documents/chrome_plugin/tab-out/extension）
-// 的扩展 ID；外部消息会唤醒 SW，回完即闲，不影响弹窗。
+// 的扩展 ID。外部消息会唤醒 SW，回完即闲，不影响弹窗。
+// 搜索放在这边做而不是把 fuzzy.js 给对方 import：扩展页 CSP 是 script-src 'self'，
+// 跨扩展加载脚本会被拦；走消息则算法只有一份。
+import { collectAllBookmarks } from './shared/util.js';
+import { searchBookmarks } from './shared/fuzzy.js';
+
+let allBookmarksPromise = null;
+const invalidateBookmarks = () => { allBookmarksPromise = null; };
+for (const ev of ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered']) {
+  chrome.bookmarks[ev].addListener(invalidateBookmarks);
+}
+
 chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
-  if (msg?.type !== 'getQuickLinks') return false;
-  chrome.storage.sync.get('quickLinks').then(({ quickLinks }) => {
-    sendResponse({ quickLinks: Array.isArray(quickLinks) ? quickLinks : [] });
-  });
-  return true;
+  if (msg?.type === 'getQuickLinks') {
+    chrome.storage.sync.get('quickLinks').then(({ quickLinks }) => {
+      sendResponse({ quickLinks: Array.isArray(quickLinks) ? quickLinks : [] });
+    });
+    return true;
+  }
+  if (msg?.type === 'searchBookmarks') {
+    allBookmarksPromise ??= collectAllBookmarks();
+    allBookmarksPromise.then((all) => {
+      sendResponse({ results: searchBookmarks(String(msg.query || ''), all, Number(msg.limit) || 50) });
+    });
+    return true;
+  }
+  return false;
 });
