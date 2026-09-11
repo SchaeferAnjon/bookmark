@@ -82,3 +82,14 @@ if (IS_UNPACKED) {
     if (area === 'local' && changes.hotReloadUntil) hotReloadLoop();
   });
 }
+
+// ---------- 对外接口：Tab Out 新标签页读取快捷链接 ----------
+// manifest.externally_connectable 只放行 Tab Out（解包路径 ~/Documents/chrome_plugin/tab-out/extension）
+// 的扩展 ID；外部消息会唤醒 SW，回完即闲，不影响弹窗。
+chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
+  if (msg?.type !== 'getQuickLinks') return false;
+  chrome.storage.sync.get('quickLinks').then(({ quickLinks }) => {
+    sendResponse({ quickLinks: Array.isArray(quickLinks) ? quickLinks : [] });
+  });
+  return true;
+});
