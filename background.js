@@ -91,6 +91,7 @@ if (IS_UNPACKED) {
 import { collectAllBookmarks, shortTitle } from './shared/util.js';
 import { searchBookmarks } from './shared/fuzzy.js';
 
+const isGroup = (it) => it?.type === 'group'; // 与 popup.js 一致：分组以 type 标记
 let allBookmarksPromise = null;
 const invalidateBookmarks = () => { allBookmarksPromise = null; };
 for (const ev of ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered']) {
@@ -102,6 +103,18 @@ chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
     chrome.storage.sync.get('quickLinks').then(({ quickLinks }) => {
       sendResponse({ quickLinks: Array.isArray(quickLinks) ? quickLinks : [] });
     });
+    return true;
+  }
+  if (msg?.type === 'setQuickLinks') {
+    // Tab Out 页面上拖拽合并 / 编辑后的整份写回；结构校验一下再落盘
+    const ok = Array.isArray(msg.quickLinks) && msg.quickLinks.every((it) =>
+      it && typeof it === 'object' && (isGroup(it)
+        ? typeof it.name === 'string' && Array.isArray(it.items) && it.items.every((l) => l && typeof l.url === 'string')
+        : typeof it.url === 'string'));
+    if (!ok) { sendResponse({ ok: false, error: 'bad shape' }); return false; }
+    chrome.storage.sync.set({ quickLinks: msg.quickLinks })
+      .then(() => sendResponse({ ok: true }))
+      .catch((e) => sendResponse({ ok: false, error: String(e?.message || e) }));
     return true;
   }
   if (msg?.type === 'searchBookmarks') {
@@ -117,7 +130,6 @@ chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
 // ---------- 不开弹窗加快捷书签：快捷键 Alt+Shift+B / 页面右键菜单 ----------
 // 弹窗每次要重开渲染进程，机器吃紧时要等好几秒；SW 只是几 KB 的脚本，唤醒即写入。
 // 反馈用图标角标：✓ 已加入，= 已存在，× 不能加（chrome:// 之类）。
-const isGroup = (it) => it?.type === 'group'; // 与 popup.js 一致：分组以 type 标记
 
 async function flashBadge(text, color) {
   await chrome.action.setBadgeBackgroundColor({ color });
