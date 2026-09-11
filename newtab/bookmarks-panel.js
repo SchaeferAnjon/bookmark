@@ -1,7 +1,7 @@
 // 新标签页书签面板：搜索全部书签 + 快捷书签（拖拽合并分组 / 编辑）+ 全部文件夹（默认收起）
 // 插在打开标签仪表盘（app.js，来自 Tab Out）上方。模块脚本，DOM 已就绪。
 // 快捷书签与弹窗共用 chrome.storage.sync.quickLinks，搜索共用 shared/fuzzy.js。
-import { faviconUrl } from '../shared/util.js';
+import { faviconUrl, shortTitle } from '../shared/util.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
 
 (function () {
@@ -93,6 +93,8 @@ import { searchBookmarks } from '../shared/fuzzy.js';
       font: inherit; font-size: 12px; width: 100%; box-sizing: border-box; text-align: center;
       border: 1px solid var(--accent-amber); border-radius: 4px; padding: 1px 4px; background: var(--card-bg); color: var(--ink); outline: none;
     }
+    .chip-quick:hover { color: var(--accent-amber) !important; background: rgba(200,113,58,0.08) !important; }
+    .chip-quick.is-added { color: var(--accent-amber); opacity: 1; }
     .bk-quick-empty { font-size: 13px; color: var(--muted); font-style: italic; padding: 12px 0 16px; }
     .bk-folders-toggle {
       display: inline-flex; align-items: center; gap: 6px; cursor: pointer; background: none; border: none;
@@ -249,6 +251,7 @@ import { searchBookmarks } from '../shared/fuzzy.js';
     </div>`;
   }
   function renderQuick() {
+    queueMicrotask(() => markAdded());
     section.classList.toggle('bk-editing', editing);
     editBtn.textContent = editing ? '完成' : '编辑';
     if (openGroup >= 0 && !isGroup(quickLinks[openGroup])) openGroup = -1;
@@ -384,6 +387,30 @@ import { searchBookmarks } from '../shared/fuzzy.js';
     renderQuick();
     await saveQuick();
   });
+
+  // ---- 「打开标签」卡片里的 ☆：把那个标签加入快捷书签（按钮由 app.js 渲染，data-action="quick-add-tab"）----
+  const hasQuick = (url) => quickLinks.some((it) => (isGroup(it) ? it.items.some((l) => l.url === url) : it.url === url));
+  async function addQuickFromTab(url, title) {
+    if (!url || !/^https?:/.test(url)) { toast('这种地址不能加入快捷书签'); return false; }
+    if (hasQuick(url)) { toast('已经在快捷书签里了'); return false; }
+    quickLinks.push({ title: shortTitle(title, url), url });
+    renderQuick();
+    await saveQuick();
+    toast('已加入快捷书签');
+    return true;
+  }
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="quick-add-tab"]');
+    if (!btn) return;
+    e.preventDefault();
+    const added = await addQuickFromTab(btn.dataset.tabUrl, btn.dataset.tabTitle);
+    if (added) btn.classList.add('is-added');
+  });
+  // 卡片重绘后按钮状态跟着数据走：已在快捷书签里的标星
+  const markAdded = () => {
+    document.querySelectorAll('[data-action="quick-add-tab"]').forEach((b) => b.classList.toggle('is-added', hasQuick(b.dataset.tabUrl)));
+  };
+  new MutationObserver(markAdded).observe(document.getElementById('openTabsMissions') || document.body, { childList: true, subtree: true });
 
   // ================= 全部文件夹（默认收起） =================
   async function collectFolders() {
