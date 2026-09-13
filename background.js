@@ -137,9 +137,13 @@ chrome.commands.onCommand.addListener(async (command) => {
 });
 
 const MENU_ID = 'bk-add-quick-link';
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({ id: MENU_ID, title: '加入快捷书签', contexts: ['page', 'frame', 'link'] }, () => chrome.runtime.lastError);
-});
+// 菜单注册表本应跨浏览器重启保留，但实测重启后右键菜单会丢，而 onInstalled 在重启时
+// 不触发，导致菜单回不来。补 onStartup 各建一次；create 前先 removeAll，避免重复 id 报错。
+const ensureMenu = () =>
+  chrome.contextMenus.removeAll(() =>
+    chrome.contextMenus.create({ id: MENU_ID, title: '加入快捷书签', contexts: ['page', 'frame', 'link'] }, () => chrome.runtime.lastError));
+chrome.runtime.onInstalled.addListener(ensureMenu);
+chrome.runtime.onStartup.addListener(ensureMenu);
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== MENU_ID) return;
   // 在链接上右键 → 收藏那个链接；否则收藏当前页
