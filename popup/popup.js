@@ -1,5 +1,6 @@
 import { faviconUrl, debounce, collectAllBookmarks, shortTitle } from '../shared/util.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
+import { loadQuickLinks as readQuickLinks, saveQuickLinks as writeQuickLinks, onQuickLinksChanged } from '../shared/quicklinks.js';
 
 // ---------- 性能探针：记录每次弹窗打开的时间线（最近 20 次，localStorage）----------
 // moduleStart/paint 都是相对 navigation start 的毫秒。若这些值很小但用户体感很慢，
@@ -139,11 +140,12 @@ searchInput.addEventListener('keydown', (e) => {
 });
 
 // ---------- 快捷书签（含 iOS 式分组）----------
-// 数据结构：quickLinks 是混合数组
-//   链接： { title, url }
-//   分组： { type:'group', name, items:[{title,url}, ...] }
+// 数据结构：quickLinks 是混合数组（存储见 shared/quicklinks.js：书签文件夹，随 Chrome 书签同步）
+//   链接： { id, title, url }
+//   分组： { id, type:'group', name, items:[{id,title,url}, ...] }
 
 let quickLinks = [];
+let loadedQuickLinks = []; // 上次从书签读到/写入的样子，写入时据此判断哪些是用户删掉的
 let editing = false;
 let openGroup = -1; // 当前打开的分组在 quickLinks 里的索引
 let dragIndex = -1; // 正在拖动的格子索引（仅顶层）
@@ -167,9 +169,13 @@ async function loadQuickLinks() {
     quickLinks = cached;
     renderQuick();
   }
-  const data = await chrome.storage.sync.get('quickLinks');
-  const fresh = Array.isArray(data.quickLinks) ? data.quickLinks : [];
-  if (!cached || JSON.stringify(fresh) !== JSON.stringify(quickLinks)) {
+  await refreshQuickLinks(!cached);
+}
+
+async function refreshQuickLinks(force = false) {
+  const fresh = await readQuickLinks();
+  loadedQuickLinks = structuredClone(fresh);
+  if (force || JSON.stringify(fresh) !== JSON.stringify(quickLinks)) {
     quickLinks = fresh;
     renderQuick();
   }
@@ -178,8 +184,15 @@ async function loadQuickLinks() {
 
 async function saveQuickLinks() {
   writeCache();
-  await chrome.storage.sync.set({ quickLinks });
+  await writeQuickLinks(quickLinks, loadedQuickLinks);
+  loadedQuickLinks = structuredClone(quickLinks); // 新建的项此时已带上 id
+  writeCache();
 }
+
+// 另一台机器同步来的改动 / 快捷键加的，弹窗开着时也跟上；改名中不打断
+onQuickLinksChanged(() => {
+  if (!document.querySelector('.q-rename')) refreshQuickLinks();
+});
 
 function makeDelBadge(onClick) {
   const del = document.createElement('button');
@@ -200,9 +213,9 @@ function makeFavicon(url, size) {
   return img;
 }
 
-// 链接显示名：手动改过名的（custom）原样显示，否则套 shortTitle 截取规则
+// 链接显示名：加入时已按 shortTitle 截过，改名的原样保存，直接显示书签标题（与新标签页一致）
 function displayTitle(link) {
-  return link.custom ? link.title : shortTitle(link.title, link.url);
+  return link.title || shortTitle('', link.url);
 }
 
 // 编辑模式下点击格子：标题变输入框就地改名。Enter/失焦保存，Esc 取消
@@ -231,7 +244,6 @@ function startRename(titleEl, value, onCommit) {
 function renameLink(titleEl, link) {
   startRename(titleEl, displayTitle(link), async (v) => {
     link.title = v;
-    link.custom = true;
     await saveQuickLinks();
   });
 }

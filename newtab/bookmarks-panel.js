@@ -1,8 +1,9 @@
 // 新标签页书签面板：搜索全部书签 + 快捷书签（拖拽合并分组 / 编辑）+ 全部文件夹（默认收起）
 // 插在打开标签仪表盘（app.js，来自 Tab Out）上方。模块脚本，DOM 已就绪。
-// 快捷书签与弹窗共用 chrome.storage.sync.quickLinks，搜索共用 shared/fuzzy.js。
+// 快捷书签与弹窗共用 shared/quicklinks.js（书签文件夹，随 Chrome 书签同步），搜索共用 shared/fuzzy.js。
 import { faviconUrl, shortTitle } from '../shared/util.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
+import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE } from '../shared/quicklinks.js';
 
 (function () {
   const CHIP_LIMIT = 8;                        // 文件夹卡片默认露出的链接数
@@ -224,11 +225,11 @@ import { searchBookmarks } from '../shared/fuzzy.js';
   const displayTitle = (l) => l.title || l.url;
   const toast = (m) => { if (typeof showToast === 'function') showToast(m); };
 
-  let lastSaved = '';
+  let loaded = []; // 上次读到/写入的样子，写入时据此判断哪些是用户删掉的
   async function saveQuick() {
     try {
-      lastSaved = JSON.stringify(quickLinks);
-      await chrome.storage.sync.set({ quickLinks });
+      await saveQuickLinks(quickLinks, loaded);
+      loaded = structuredClone(quickLinks);
     } catch (e) {
       toast('保存失败：' + (e.message || e));
       await loadQuick();
@@ -270,9 +271,10 @@ import { searchBookmarks } from '../shared/fuzzy.js';
     }
   }
   async function loadQuick() {
-    const { quickLinks: raw } = await chrome.storage.sync.get('quickLinks');
-    quickLinks = Array.isArray(raw) ? raw : [];
-    lastSaved = JSON.stringify(quickLinks);
+    const fresh = await loadQuickLinks();
+    loaded = structuredClone(fresh);
+    if (JSON.stringify(fresh) === JSON.stringify(quickLinks) && quickEl.childElementCount) return;
+    quickLinks = fresh;
     renderQuick();
   }
 
@@ -332,7 +334,7 @@ import { searchBookmarks } from '../shared/fuzzy.js';
         startRename(titleEl, g.name, 12, async (v) => { g.name = v; await saveQuick(); });
       } else {
         const link = inGroup ? quickLinks[openGroup].items[idx] : quickLinks[idx];
-        startRename(titleEl, displayTitle(link), 20, async (v) => { link.title = v; link.custom = true; await saveQuick(); });
+        startRename(titleEl, displayTitle(link), 20, async (v) => { link.title = v; await saveQuick(); });
       }
       return;
     }
@@ -344,7 +346,11 @@ import { searchBookmarks } from '../shared/fuzzy.js';
   }
   quickEl.addEventListener('click', onQuickClick);
   groupRowEl.addEventListener('click', onQuickClick);
-  editBtn.addEventListener('click', () => { editing = !editing; if (editing) openGroup = openGroup; renderQuick(); });
+  editBtn.addEventListener('click', () => {
+    editing = !editing;
+    renderQuick();
+    if (!editing) loadQuick(); // 编辑期间暂停了同步刷新，退出时补一次
+  });
 
   // ---- 拖拽：只有「链接」能被拖到别的格子；拖到链接上 = 新建分组，拖到分组上 = 加入 ----
   quickEl.addEventListener('dragstart', (e) => {
@@ -419,7 +425,7 @@ import { searchBookmarks } from '../shared/fuzzy.js';
     const walk = (node, path) => {
       const kids = node.children || [];
       const links = kids.filter((n) => n.url);
-      const subs = kids.filter((n) => !n.url);
+      const subs = kids.filter((n) => !n.url && n.title !== QUICK_FOLDER_TITLE); // 快捷书签上面已单独展示
       const name = path ? `${path} / ${node.title}` : node.title;
       if (links.length) cards.push({ id: node.id, name, links });
       for (const s of subs) walk(s, path === null ? '' : name);
@@ -495,10 +501,8 @@ import { searchBookmarks } from '../shared/fuzzy.js';
   for (const ev of ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered']) {
     chrome.bookmarks[ev]?.addListener(onBookmarksChanged);
   }
-  // 弹窗 / 快捷键 / 右键菜单改了快捷书签，这里实时跟上；自己刚保存的那次跳过；编辑或改名中不打断
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'sync' || !changes.quickLinks) return;
-    if (JSON.stringify(changes.quickLinks.newValue ?? []) === lastSaved) return;
+  // 弹窗 / 快捷键 / 右键菜单 / 另一台机器同步来的改动，这里实时跟上；内容没变不重绘；编辑或改名中不打断
+  onQuickLinksChanged(() => {
     if (editing || section.querySelector('.bk-rename')) return;
     loadQuick();
   });

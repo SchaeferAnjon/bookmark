@@ -1,4 +1,4 @@
-import { shortTitle } from './shared/util.js';
+import { appendQuickLink, migrateFromStorageSync } from './shared/quicklinks.js';
 
 // 后台 service worker：热重载后恢复页面 + 开发热重载（按需开启，1 小时自动关闭）
 //
@@ -30,7 +30,7 @@ const WATCH_FILES = [
   'popup/popup.html', 'popup/popup.js',
   'manager/manager.html', 'manager/manager.css', 'manager/manager.js',
   'options/options.html', 'options/options.css', 'options/options.js',
-  'shared/api.js', 'shared/util.js', 'shared/fuzzy.js',
+  'shared/api.js', 'shared/util.js', 'shared/fuzzy.js', 'shared/quicklinks.js',
   'newtab/index.html', 'newtab/app.js', 'newtab/style.css', 'newtab/bookmarks-panel.js',
 ];
 
@@ -109,7 +109,10 @@ updateBadge();
 // ---------- 不开弹窗加快捷书签：快捷键 Alt+Shift+B / 页面右键菜单 ----------
 // 弹窗每次要重开渲染进程，机器吃紧时要等好几秒；SW 只是几 KB 的脚本，唤醒即写入。
 // 反馈用图标角标：✓ 已加入，= 已存在，× 不能加（chrome:// 之类）；1.5 秒后恢复标签计数。
-const isGroup = (it) => it?.type === 'group'; // 与 popup.js 一致：分组以 type 标记
+// 快捷书签存在书签文件夹里（shared/quicklinks.js），装好/启动时把旧 storage.sync 数据迁过去
+const migrate = () => migrateFromStorageSync().catch((e) => console.warn('[quicklinks] migrate failed', e));
+chrome.runtime.onInstalled.addListener(migrate);
+chrome.runtime.onStartup.addListener(migrate);
 
 async function flashBadge(text, color) {
   await chrome.action.setBadgeBackgroundColor({ color });
@@ -119,14 +122,10 @@ async function flashBadge(text, color) {
 
 export async function addQuickLink(tab) {
   if (!tab?.url || !/^https?:/.test(tab.url)) { await flashBadge('×', '#b35a5a'); return 'invalid'; }
-  const { quickLinks: raw } = await chrome.storage.sync.get('quickLinks');
-  const quickLinks = Array.isArray(raw) ? raw : [];
-  const exists = quickLinks.some((it) => (isGroup(it) ? it.items.some((l) => l.url === tab.url) : it.url === tab.url));
-  if (exists) { await flashBadge('=', '#9a918a'); return 'exists'; }
-  quickLinks.push({ title: shortTitle(tab.title, tab.url), url: tab.url });
-  await chrome.storage.sync.set({ quickLinks });
-  await flashBadge('✓', '#3d7a4a');
-  return 'added';
+  const result = await appendQuickLink({ title: tab.title, url: tab.url });
+  if (result === 'exists') await flashBadge('=', '#9a918a');
+  else await flashBadge('✓', '#3d7a4a');
+  return result;
 }
 globalThis.addQuickLink = addQuickLink; // 供端到端测试从 SW 直接调用
 

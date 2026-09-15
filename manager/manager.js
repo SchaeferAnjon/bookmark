@@ -1,6 +1,7 @@
 import { faviconUrl, debounce, collectAllBookmarks } from '../shared/util.js';
 import { getAIConfig, chatComplete, extractJSON, PROVIDERS } from '../shared/api.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
+import { quickFolderIds } from '../shared/quicklinks.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
@@ -361,7 +362,8 @@ aiStart.addEventListener('click', async () => {
 
   try {
     const all = await collectAllBookmarks();
-    const targets = all.filter((b) => /^https?:/i.test(b.url));
+    const skip = await quickFolderIds(); // 快捷书签文件夹不参与整理，否则会被挪走
+    const targets = all.filter((b) => /^https?:/i.test(b.url) && !skip.has(b.id));
     const byId = new Map(targets.map((b) => [b.id, b]));
     const chunks = [];
     for (let i = 0; i < targets.length; i += CHUNK_SIZE) chunks.push(targets.slice(i, i + CHUNK_SIZE));
