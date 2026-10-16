@@ -60,19 +60,6 @@ Safari extension ──extension message─┘
 - Dead-link checks fetch bookmark URLs directly from your machine. AI organizing sends bookmark titles and URLs only when you click it, and only to the model API **you** configured.
 - See [PRIVACY.md](PRIVACY.md).
 
-## Development
-
-See the layout and commands in the [Chinese README](README.md#开发). In short:
-
-```bash
-npm test                                     # JS unit tests (Node 20+)
-swift test --package-path mac/BKCore         # Swift unit tests
-python3 scripts/build.py                     # build extensions into dist/
-xcodegen generate --spec mac/project.yml     # regenerate the Xcode project after editing project.yml
-```
-
-Building the Mac app needs Xcode 15+ and a paid Apple Developer account (iCloud containers require one). Copy `mac/Config/Signing.local.xcconfig.example` to `Signing.local.xcconfig` with your Team ID and replace the `io.github.schaeferanjon` prefix in `project.yml`. Releasing: [docs/RELEASING.md](docs/RELEASING.md).
-
 ## License
 
 MIT. The open-tabs dashboard is adapted from [Tab Out](https://github.com/zarazhangrui/tab-out) (MIT, see `newtab/LICENSE-tab-out.md`).
