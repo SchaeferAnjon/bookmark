@@ -26,6 +26,22 @@
 // All open tabs — populated by fetchOpenTabs()
 let openTabs = [];
 
+// Chrome：扩展自带的本地 favicon 缓存，不走网络。Safari 没有这个接口，依次用：
+// 标签自己报的图标 → Chrome 经 iCloud 同步来的图标（bookmarks-panel.js 存在 localStorage）→ 网站 /favicon.ico；
+// 都取不到时 bookmarks-panel.js 装的全局兜底会换成首字母图标。
+const HAS_FAVICON_API = (chrome.runtime.getManifest().permissions || []).includes('favicon');
+function tabFavicon(pageUrl, tabIconUrl) {
+  if (HAS_FAVICON_API) return chrome.runtime.getURL('/_favicon/?size=16&pageUrl=' + encodeURIComponent(pageUrl));
+  if (tabIconUrl && /^https?:|^data:image\//.test(tabIconUrl)) return tabIconUrl;
+  try {
+    const u = new URL(pageUrl);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    const synced = globalThis.bkSyncedIcons || JSON.parse(localStorage.getItem('bk.iconCache') || '{}');
+    return synced[u.origin] || u.origin + '/favicon.ico';
+  } catch {}
+  return '';
+}
+
 /**
  * fetchOpenTabs()
  *
@@ -34,9 +50,8 @@ let openTabs = [];
  */
 async function fetchOpenTabs() {
   try {
-    const extensionId = chrome.runtime.id;
-    // The new URL for this page is now index.html (not newtab.html)
-    const newtabUrl = `chrome-extension://${extensionId}/newtab/index.html`;
+    // Chrome 是 chrome-extension://…，Safari 是 safari-web-extension://…
+    const newtabUrl = chrome.runtime.getURL('newtab/index.html');
 
     const tabs = await chrome.tabs.query({});
     openTabs = tabs.map(t => ({
@@ -45,6 +60,7 @@ async function fetchOpenTabs() {
       title:    t.title,
       windowId: t.windowId,
       active:   t.active,
+      favIconUrl: t.favIconUrl,
       // Flag Tab Out's own pages so we can detect duplicate new tabs
       isTabOut: t.url === newtabUrl || t.url === 'chrome://newtab/',
     }));
@@ -175,8 +191,7 @@ async function closeDuplicateTabs(urls, keepOne = true) {
  * Closes all duplicate Tab Out new-tab pages except the current one.
  */
 async function closeTabOutDupes() {
-  const extensionId = chrome.runtime.id;
-  const newtabUrl = `chrome-extension://${extensionId}/newtab/index.html`;
+  const newtabUrl = chrome.runtime.getURL('newtab/index.html');
 
   const allTabs = await chrome.tabs.query({});
   const currentWindow = await chrome.windows.getCurrent();
@@ -725,6 +740,8 @@ function getRealTabs() {
     return (
       !url.startsWith('chrome://') &&
       !url.startsWith('chrome-extension://') &&
+      !url.startsWith('safari-web-extension://') &&
+      !url.startsWith('favorites://') &&
       !url.startsWith('about:') &&
       !url.startsWith('edge://') &&
       !url.startsWith('brave://')
@@ -767,7 +784,7 @@ function buildOverflowChips(hiddenTabs, urlCounts = {}) {
     const safeTitle = label.replace(/"/g, '&quot;');
     let domain = '';
     try { domain = new URL(tab.url).hostname; } catch {}
-    const faviconUrl = chrome.runtime.getURL('/_favicon/?size=16&pageUrl=' + encodeURIComponent(tab.url)); // 本地缓存，不走网络
+    const faviconUrl = tabFavicon(tab.url, tab.favIconUrl);
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
       ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
@@ -851,7 +868,7 @@ function renderDomainCard(group) {
     const safeTitle = label.replace(/"/g, '&quot;');
     let domain = '';
     try { domain = new URL(tab.url).hostname; } catch {}
-    const faviconUrl = chrome.runtime.getURL('/_favicon/?size=16&pageUrl=' + encodeURIComponent(tab.url)); // 本地缓存，不走网络
+    const faviconUrl = tabFavicon(tab.url, tab.favIconUrl);
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
       ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
@@ -972,7 +989,7 @@ async function renderDeferredColumn() {
 function renderDeferredItem(item) {
   let domain = '';
   try { domain = new URL(item.url).hostname.replace(/^www\./, ''); } catch {}
-  const faviconUrl = chrome.runtime.getURL('/_favicon/?size=16&pageUrl=' + encodeURIComponent(item.url)); // 本地缓存，不走网络
+  const faviconUrl = tabFavicon(item.url);
   const ago = timeAgo(item.savedAt);
 
   return `

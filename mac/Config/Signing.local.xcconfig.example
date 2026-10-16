@@ -1,0 +1,2 @@
+// 复制为 Signing.local.xcconfig（已在 .gitignore 里），改成你自己的 Team ID
+DEVELOPMENT_TEAM = ABCDE12345

@@ -1,6 +1,8 @@
-import { faviconUrl, debounce, collectAllBookmarks, shortTitle } from '../shared/util.js';
+import '../shared/compat.js';
+import { faviconUrl, debounce, collectAllBookmarks, shortTitle, installFaviconFallback, setSyncedIcons } from '../shared/util.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
-import { loadQuickLinks as readQuickLinks, saveQuickLinks as writeQuickLinks, onQuickLinksChanged } from '../shared/quicklinks.js';
+import { HAS_BOOKMARKS } from '../shared/env.js';
+import { loadQuickLinks as readQuickLinks, saveQuickLinks as writeQuickLinks, onQuickLinksChanged, quickIcons } from '../shared/quicklinks.js';
 
 // ---------- 性能探针：记录每次弹窗打开的时间线（最近 20 次，localStorage）----------
 // moduleStart/paint 都是相对 navigation start 的毫秒。若这些值很小但用户体感很慢，
@@ -32,7 +34,7 @@ window.addEventListener('load', () => {
 // 开发版诊断行（未打包扩展才显示）：版本 + 最近几次打开的首帧耗时 + 热重载是否开着
 async function showDevInfo(log) {
   const manifest = chrome.runtime.getManifest();
-  if ('update_url' in manifest) return;
+  if ('update_url' in manifest || !HAS_BOOKMARKS) return; // Safari 里没有 update_url，也不显示
   const el = document.querySelector('#devinfo');
   const { hotReloadUntil = 0 } = await chrome.storage.local.get('hotReloadUntil');
   const recent = log.slice(-5).map((r) => `${r['first-contentful-paint'] ?? r['first-paint'] ?? r.loadEnd}ms`).join(' ');
@@ -52,6 +54,15 @@ const quickEmpty = $('#quick-empty');
 const groupSection = $('#group-section');
 const groupGrid = $('#group-grid');
 const groupNameInput = $('#group-name');
+
+// Safari 没有书签接口：不显示「搜索全部书签」和底栏（整理书签 / 设置只在 Chrome 里有）
+if (!HAS_BOOKMARKS) {
+  document.querySelector('.topbar').style.display = 'none';
+  document.querySelector('.bottombar').style.display = 'none';
+}
+installFaviconFallback();
+// Safari：用新标签页存下的、Chrome 经 iCloud 同步来的网站图标（同一扩展的 localStorage）
+try { setSyncedIcons(JSON.parse(localStorage.getItem('bk.iconCache') || '{}')); } catch { /* 没有就算了 */ }
 
 let selectedIndex = -1;
 let currentResults = [];
@@ -140,7 +151,7 @@ searchInput.addEventListener('keydown', (e) => {
 });
 
 // ---------- 快捷书签（含 iOS 式分组）----------
-// 数据结构：quickLinks 是混合数组（存储见 shared/quicklinks.js：书签文件夹，随 Chrome 书签同步）
+// 数据结构：quickLinks 是混合数组（存储见 shared/quicklinks.js：装了 Mac App 存 iCloud，否则存 Chrome 书签文件夹）
 //   链接： { id, title, url }
 //   分组： { id, type:'group', name, items:[{id,title,url}, ...] }
 
@@ -173,8 +184,25 @@ async function loadQuickLinks() {
 }
 
 async function refreshQuickLinks(force = false) {
-  const fresh = await readQuickLinks();
+  let fresh;
+  try {
+    fresh = await readQuickLinks();
+  } catch (e) {
+    console.warn('[popup] 读取快捷书签失败', e);
+    quickEmpty.textContent = '连不上 BookmarkKeeper App。请先从「应用程序」打开一次 App。';
+    quickEmpty.hidden = false;
+    return;
+  }
   loadedQuickLinks = structuredClone(fresh);
+  // Safari：Chrome 经 iCloud 同步来的网站图标，比 localStorage 里的旧缓存优先
+  if (!HAS_BOOKMARKS) {
+    const icons = await quickIcons();
+    if (Object.keys(icons).length) {
+      setSyncedIcons(icons);
+      try { localStorage.setItem('bk.iconCache', JSON.stringify(icons)); } catch { /* 空间满 */ }
+      force = true;
+    }
+  }
   if (force || JSON.stringify(fresh) !== JSON.stringify(quickLinks)) {
     quickLinks = fresh;
     renderQuick();

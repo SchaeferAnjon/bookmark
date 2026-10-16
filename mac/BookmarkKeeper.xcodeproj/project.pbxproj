@@ -1,0 +1,565 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0CDDA4242C55FFA524897F09 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC117476534C70C4DBA5556 /* AppModel.swift */; };
+		0F95ED8ABB23394CD2FD1131 /* BKCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8FBBC88B5F5589586999AC61 /* BKCore */; };
+		24769474208491E7A9A5DDAD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B412F83C7ABE1381BF91425 /* Assets.xcassets */; };
+		9020D33A8D0DBA9E593E52EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13540B96AC7667A39A19C885 /* ContentView.swift */; };
+		A94813D39A10BF288EFA1F1B /* Entry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7970B33017FDFCEBD61BE2D /* Entry.swift */; };
+		CCECF4557060B01828D5EDF5 /* Diagnose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02AD9DA5F7CA84A679F3308D /* Diagnose.swift */; };
+		DE8C246A2A36E1663AA5D8A8 /* BKCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0A21C0A2E08B2C7057025849 /* BKCore */; };
+		E595B4A7F884EA5259FFBA43 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B726232EFBBA198D06F57A9 /* SafariWebExtensionHandler.swift */; };
+		FFCF437E266DD11649173D5A /* BookmarkKeeperExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6EE8461ECF088BBE1882755A /* BookmarkKeeperExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DD18D4DDD88BFA68542C0A1C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 77C2B591AAFBF5DC32D7DEA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C376E07D8DFCC3B59EAB145D;
+			remoteInfo = BookmarkKeeperExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F83F5D3E38A8B06FB7C7257C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FFCF437E266DD11649173D5A /* BookmarkKeeperExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		02AD9DA5F7CA84A679F3308D /* Diagnose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnose.swift; sourceTree = "<group>"; };
+		13540B96AC7667A39A19C885 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		2B412F83C7ABE1381BF91425 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5B726232EFBBA198D06F57A9 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		6C3052950F253F85D5164AF5 /* Extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Extension.entitlements; sourceTree = "<group>"; };
+		6EE8461ECF088BBE1882755A /* BookmarkKeeperExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BookmarkKeeperExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		70E5E61268C7459339AD026C /* BookmarkKeeper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BookmarkKeeper.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9ABDB83DB8CF57BDC9766D05 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		9D3FF7B6563D85A752A483E5 /* BookmarkKeeper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BookmarkKeeper.entitlements; sourceTree = "<group>"; };
+		A9019DE4BDB875EF298DE4C3 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
+		AE92409CD04BE39A5CF0C290 /* BKCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = BKCore; path = BKCore; sourceTree = SOURCE_ROOT; };
+		B7970B33017FDFCEBD61BE2D /* Entry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Entry.swift; sourceTree = "<group>"; };
+		BFC117476534C70C4DBA5556 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		EC9AA9808EDF45B8B669977D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8761B72E4F4B46F6A1E21069 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE8C246A2A36E1663AA5D8A8 /* BKCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E8150D63D6FB7EFC9894BCD8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0F95ED8ABB23394CD2FD1131 /* BKCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		237F9B791FAA7323318CBB4E = {
+			isa = PBXGroup;
+			children = (
+				93F82775ED8DB71C6ECD5F91 /* App */,
+				D92036249CCD7F683E28641F /* Config */,
+				8378504DAF5FA10C7924414C /* Extension */,
+				9EA1FD0D6A114D6CF9DA82BA /* Packages */,
+				2DCCBF3F1804F8A43BBE39EF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2DCCBF3F1804F8A43BBE39EF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				70E5E61268C7459339AD026C /* BookmarkKeeper.app */,
+				6EE8461ECF088BBE1882755A /* BookmarkKeeperExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8378504DAF5FA10C7924414C /* Extension */ = {
+			isa = PBXGroup;
+			children = (
+				6C3052950F253F85D5164AF5 /* Extension.entitlements */,
+				9ABDB83DB8CF57BDC9766D05 /* Info.plist */,
+				5B726232EFBBA198D06F57A9 /* SafariWebExtensionHandler.swift */,
+			);
+			path = Extension;
+			sourceTree = "<group>";
+		};
+		93F82775ED8DB71C6ECD5F91 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				BFC117476534C70C4DBA5556 /* AppModel.swift */,
+				2B412F83C7ABE1381BF91425 /* Assets.xcassets */,
+				9D3FF7B6563D85A752A483E5 /* BookmarkKeeper.entitlements */,
+				13540B96AC7667A39A19C885 /* ContentView.swift */,
+				02AD9DA5F7CA84A679F3308D /* Diagnose.swift */,
+				B7970B33017FDFCEBD61BE2D /* Entry.swift */,
+				EC9AA9808EDF45B8B669977D /* Info.plist */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		9EA1FD0D6A114D6CF9DA82BA /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				AE92409CD04BE39A5CF0C290 /* BKCore */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		D92036249CCD7F683E28641F /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				A9019DE4BDB875EF298DE4C3 /* Base.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		88A308FD8E5C881354A522C1 /* BookmarkKeeper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 746D00718ED358C31A0E1DCB /* Build configuration list for PBXNativeTarget "BookmarkKeeper" */;
+			buildPhases = (
+				F1FB3A386EEB5BA721CC6F6A /* Sources */,
+				F45F27E699693FACAAF3E39C /* Bundle Chrome extension */,
+				965279F0FA694065C13AFCAB /* Resources */,
+				E8150D63D6FB7EFC9894BCD8 /* Frameworks */,
+				F83F5D3E38A8B06FB7C7257C /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0642F17C373EE8F3E6BBFB46 /* PBXTargetDependency */,
+			);
+			name = BookmarkKeeper;
+			packageProductDependencies = (
+				8FBBC88B5F5589586999AC61 /* BKCore */,
+			);
+			productName = BookmarkKeeper;
+			productReference = 70E5E61268C7459339AD026C /* BookmarkKeeper.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C376E07D8DFCC3B59EAB145D /* BookmarkKeeperExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A0868C2B0DAE4E8EDF5CCB0 /* Build configuration list for PBXNativeTarget "BookmarkKeeperExtension" */;
+			buildPhases = (
+				803337BEB44520D5DE9EAD1A /* Sources */,
+				5A043CE2015D7BF6130D8ED3 /* Bundle Safari extension resources */,
+				8761B72E4F4B46F6A1E21069 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BookmarkKeeperExtension;
+			packageProductDependencies = (
+				0A21C0A2E08B2C7057025849 /* BKCore */,
+			);
+			productName = BookmarkKeeperExtension;
+			productReference = 6EE8461ECF088BBE1882755A /* BookmarkKeeperExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		77C2B591AAFBF5DC32D7DEA3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					88A308FD8E5C881354A522C1 = {
+						ProvisioningStyle = Automatic;
+					};
+					C376E07D8DFCC3B59EAB145D = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 57ADECAB3E37691D6B6DEBDF /* Build configuration list for PBXProject "BookmarkKeeper" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 237F9B791FAA7323318CBB4E;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B3A21F68E6EA74EEE6FB8CA1 /* XCLocalSwiftPackageReference "BKCore" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 2DCCBF3F1804F8A43BBE39EF /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				88A308FD8E5C881354A522C1 /* BookmarkKeeper */,
+				C376E07D8DFCC3B59EAB145D /* BookmarkKeeperExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		965279F0FA694065C13AFCAB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24769474208491E7A9A5DDAD /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5A043CE2015D7BF6130D8ED3 /* Bundle Safari extension resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle Safari extension resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/python3 \"${SRCROOT}/../scripts/build.py\" --target safari --out \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n";
+		};
+		F45F27E699693FACAAF3E39C /* Bundle Chrome extension */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Bundle Chrome extension";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/python3 \"${SRCROOT}/../scripts/build.py\" --target chrome --out \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ChromeExtension\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		803337BEB44520D5DE9EAD1A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E595B4A7F884EA5259FFBA43 /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F1FB3A386EEB5BA721CC6F6A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0CDDA4242C55FFA524897F09 /* AppModel.swift in Sources */,
+				9020D33A8D0DBA9E593E52EB /* ContentView.swift in Sources */,
+				CCECF4557060B01828D5EDF5 /* Diagnose.swift in Sources */,
+				A94813D39A10BF288EFA1F1B /* Entry.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0642F17C373EE8F3E6BBFB46 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C376E07D8DFCC3B59EAB145D /* BookmarkKeeperExtension */;
+			targetProxy = DD18D4DDD88BFA68542C0A1C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1F9266B414C4CD14B43F25A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/BookmarkKeeper.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.schaeferanjon.BookmarkKeeper;
+				PRODUCT_NAME = BookmarkKeeper;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		3D7C77BA154E22A92412FA77 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A9019DE4BDB875EF298DE4C3 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.8.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6DDE66FF2993ADC841058CAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Extension/Extension.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Extension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.schaeferanjon.BookmarkKeeper.Extension;
+				PRODUCT_NAME = "BookmarkKeeper Extension";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		B967885752E420710FF85BBD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A9019DE4BDB875EF298DE4C3 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.8.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		C06321D130955E5147B18746 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = App/BookmarkKeeper.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = App/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.schaeferanjon.BookmarkKeeper;
+				PRODUCT_NAME = BookmarkKeeper;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		EC8E4884DC640C0F2C5B2094 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Extension/Extension.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = Extension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.schaeferanjon.BookmarkKeeper.Extension;
+				PRODUCT_NAME = "BookmarkKeeper Extension";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A0868C2B0DAE4E8EDF5CCB0 /* Build configuration list for PBXNativeTarget "BookmarkKeeperExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EC8E4884DC640C0F2C5B2094 /* Debug */,
+				6DDE66FF2993ADC841058CAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		57ADECAB3E37691D6B6DEBDF /* Build configuration list for PBXProject "BookmarkKeeper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B967885752E420710FF85BBD /* Debug */,
+				3D7C77BA154E22A92412FA77 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		746D00718ED358C31A0E1DCB /* Build configuration list for PBXNativeTarget "BookmarkKeeper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F9266B414C4CD14B43F25A8 /* Debug */,
+				C06321D130955E5147B18746 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		B3A21F68E6EA74EEE6FB8CA1 /* XCLocalSwiftPackageReference "BKCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = BKCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0A21C0A2E08B2C7057025849 /* BKCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BKCore;
+		};
+		8FBBC88B5F5589586999AC61 /* BKCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BKCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 77C2B591AAFBF5DC32D7DEA3 /* Project object */;
+}

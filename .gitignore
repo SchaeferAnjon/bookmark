@@ -21,3 +21,14 @@ videos/
 # Project
 node_modules/
 *.zip
+
+# Build output
+dist/
+mac/build/
+mac/Config/Signing.local.xcconfig
+*.xcuserstate
+xcuserdata/
+.build/
+
+# 开发日志只留本机
+process.md

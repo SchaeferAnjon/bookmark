@@ -1,63 +1,94 @@
 # 书签管家 BookmarkKeeper
 
-开源的 Chrome 书签管理扩展（Manifest V3，纯原生 JS，零依赖、无构建步骤）。
+[English](README.en.md)
+
+接管浏览器的新标签页：打开的标签按网站整理成卡片，上面是快捷书签和书签搜索。**快捷书签经 iCloud 在 Chrome、Safari 和你的所有 Mac 之间同步。**
+
+- **Chrome 扩展**：完整功能。没装 Mac App 时也能单独用（快捷书签随 Chrome 书签同步，Windows 也可以）。
+- **Safari 扩展**：快捷书签 + 打开的标签。Safari 内存占用比 Chrome 小，适合日常浏览。
+- **Mac App**：负责把快捷书签存进你的 iCloud，让 Chrome 和 Safari 读写同一份。平时不用打开。
 
 ## 功能
 
-- **🗂 新标签页仪表盘** — 扩展接管新标签页：打开的标签按域名分组成卡片，可一键关闭整组、去重、「稍后再看」；上方是书签面板：搜索全部书签、快捷书签大图标（拖一个到另一个上合并成分组，编辑模式可改名/删除）、全部书签文件夹（默认收起）。页面常驻，不像弹窗每次要重开进程。仪表盘部分改自 [Tab Out](https://github.com/zarazhangrui/tab-out)（MIT，见 `newtab/LICENSE-tab-out.md`）。
-- **⌨️ 不开弹窗加快捷书签** — 任意网页按 `Alt+Shift+B`，或右键「加入快捷书签」；图标角标 ✓/=/× 反馈，平时显示打开的网页标签数。
-- **🔍 全局书签搜索** — 点扩展图标即搜，支持标题/网址匹配、键盘上下键选择、回车打开。
-- **🧹 一键清理失效书签** — 并发扫描所有书签链接，区分「确认失效」（404/410、域名无法解析、连接失败）与「疑似问题」（403、超时等，可能只是网站反爬），勾选后批量删除，删除前二次确认。
-- **⚡ 快捷书签** — 弹窗里固定常用页面（一键把当前页加入），点开即达。存成 Chrome 书签「其他书签 / 书签管家·快捷书签」（分组 = 子文件夹），随 Chrome 书签同步到登录同一账号的其他电脑。
-- **✨ AI 智能整理** — 把全部书签发给大模型按主题自动分类，先预览再应用（书签移动到书签栏下的「AI 整理 <日期>」文件夹，不删除任何书签）。支持自填 API Key，兼容 **智谱 GLM-5.3** 与 **DeepSeek**，也支持任意 OpenAI 兼容接口。
+| | Chrome | Safari |
+|---|:-:|:-:|
+| 新标签页：打开的标签按网站分组，一键关闭整组、去重、稍后再看 | ✅ | ✅ |
+| 快捷书签：大图标，拖一个到另一个上合并成分组，编辑模式改名 / 删除 | ✅ | ✅ |
+| 不开弹窗加快捷书签：`Alt+Shift+B` 或右键「加入快捷书签」 | ✅ | ✅ |
+| 搜索全部书签、展开全部书签文件夹 | ✅ | — |
+| 整理中心：一键找出失效链接、AI 按主题整理书签（智谱 GLM / DeepSeek / 任意 OpenAI 兼容接口） | ✅ | — |
 
-## 安装（开发者模式加载）
+Safari 没有给扩展开放书签接口，所以 Chrome 的书签本身（书签栏里那些）不会出现在 Safari 里；两边共享的是快捷书签。
 
-1. 下载/克隆本仓库。
-2. 打开 `chrome://extensions/`，右上角开启「开发者模式」。
-3. 点「加载已解压的扩展程序」，选择本项目根目录。
+## 安装
 
-## 多台电脑同步
+### Mac（Chrome + Safari）
 
-两台电脑都登录同一个 Google 账号并开启书签同步（`chrome://settings/syncSetup`），各自克隆本仓库并按上面加载即可：书签和快捷书签（含分组、顺序、改名）自动同步；两边同时改，各自的新增互不覆盖。更新代码：`git pull` 后在 `chrome://extensions` 点扩展的刷新按钮。
+1. 从 [Releases](https://github.com/SchaeferAnjon/bookmark/releases/latest) 下载 `BookmarkKeeper-<版本>.dmg`，把「BookmarkKeeper」拖进「应用程序」，打开一次。
+2. App 窗口里会显示三项状态：
+   - **iCloud**：需要登录 Apple ID 并打开 iCloud 云盘。
+   - **Safari**：点「在 Safari 中启用」，勾选「书签管家」。想让新标签页也用它：Safari →「设置」→「通用」→「新标签页打开方式」选「书签管家」。
+   - **Chrome**：App 会自动连接本机的 Chrome（以及 Edge、Brave、Arc 等）。
+3. Chrome 里安装扩展：点 App 里的「扩展文件夹」，访达会选中一个文件夹；打开 `chrome://extensions`，开启右上角「开发者模式」，把这个文件夹拖进页面。以后更新 App 时这个文件夹会跟着更新，在 `chrome://extensions` 点一下扩展的刷新按钮即可。
+4. 其他 Mac 重复以上步骤。只要登录同一个 Apple ID，快捷书签会自动出现。
 
-不同步的：「稍后再看」列表、AI 配置（含 API Key）、热重载开关——都只存本机 `chrome.storage.local`。
+第一次连上 App 时，Chrome 里原来的快捷书签（「其他书签 / 书签管家·快捷书签」文件夹）会自动导入 iCloud。原文件夹保留不动，当备份。
 
-v0.6.x 的快捷书签存在 `chrome.storage.sync`，但解包扩展的 ID 按目录路径计算，两台路径不同就读不到彼此的数据。v0.7.0 起首次运行会把旧数据自动搬进书签文件夹（旧数据原样保留）。另外，新标签页只能被一个扩展接管，若同时装了 Tab Out 等新标签页扩展，要先停用。
+### 只用 Chrome（Windows / Linux / 不想装 App 的 Mac）
 
-## AI 配置
+下载本仓库（Code → Download ZIP，解压），在 `chrome://extensions` 开启「开发者模式」→「加载已解压的扩展程序」选解压出来的目录。快捷书签存成 Chrome 书签「其他书签 / 书签管家·快捷书签」，随 Chrome 书签同步到登录同一 Google 账号的电脑。
 
-扩展设置页（弹窗右下角 ⚙️）中选择服务商并填入 API Key：
+## 同步是怎么做的
 
-| 服务商 | API 地址（自动填充） | 默认模型 | 申请 Key |
-|---|---|---|---|
-| 智谱 GLM | `https://open.bigmodel.cn/api/paas/v4` | `glm-5.3-flash` | open.bigmodel.cn |
-| DeepSeek | `https://api.deepseek.com` | `deepseek-chat` | platform.deepseek.com |
-| 自定义 | 任意 OpenAI 兼容地址 | 自填 | — |
+```
+Chrome 扩展 ──本地通信──┐
+                        ├─→ BookmarkKeeper App ─→ 你的 iCloud（App 专用容器）─→ 其他 Mac
+Safari 扩展 ──扩展消息──┘
+```
 
-API Key 仅存于本机 `chrome.storage.local`（不随浏览器账号同步），只在调用你所选模型官方接口时发送。
+- 快捷书签只存在**你自己的 iCloud** 里，按 Apple ID 区分。插件没有账号、不用登录；作者和其他用户都看不到你的数据。
+- 每个链接、每个分组是一条单独的记录，带修改时间。两台电脑同时改不同的书签，两边的改动都保留；同时改同一个，以后改的为准。删除会留下标记，不会被另一台电脑同步回来。
+- 每台 Mac 上 Chrome 和 Safari 各写各的文件，读的时候合并，所以 iCloud 不会产生冲突副本。
+- 同步只走 iCloud 一条线，不和 Chrome 自带的书签同步混在一起，避免重复。
+- iCloud 云盘没开时，快捷书签先存在本机；打开 iCloud 后自动并进去。
+
+**不同步的**：「稍后再看」列表、AI 配置（含 API Key）只存在各个浏览器的扩展里。换电脑或重装扩展前，可以在设置页「备份与迁移」导出、再导入。
 
 ## 隐私
 
-- 无任何遥测、无第三方服务器。
-- 失效检测直接从本机访问书签地址；AI 整理仅在你主动点击时，把书签的标题与 URL 发送给你自己配置的模型接口。
-
-## 目录结构
-
-```
-manifest.json        MV3 清单
-background.js        service worker（安装初始化）
-popup/               弹窗：搜索 + 快捷书签
-manager/             整理中心：全部书签 / 失效检测 / AI 整理
-options/             设置：API Key / 服务商 / 模型
-shared/              公共模块（LLM API 封装、工具函数、快捷书签存储 quicklinks.js）
-scripts/make_icons.py  图标生成脚本（纯 Python 标准库）
-```
-
-## License
-
-MIT
+- 没有遥测，没有作者的服务器。快捷书签只在你的设备和你的 iCloud 之间流动。
+- 失效检测直接从本机访问书签地址；AI 整理只在你点击时，把书签标题和网址发给**你自己配置**的模型接口。
+- 详见 [PRIVACY.md](PRIVACY.md)。
 
 ## 开发
 
-未打包加载时，设置页底部有「源码热重载」开关：勾选后 1 小时内改源文件自动重载扩展，到期自动关。默认关闭，因为常驻轮询会拖慢弹窗打开。
+```
+manifest.json, background.js, newtab/, popup/, manager/, options/, shared/   浏览器扩展（纯原生 JS，无构建步骤）
+  shared/qlmodel.js            快捷书签同步模型（纯函数）
+  shared/quicklinks*.js        快捷书签存储：App/iCloud（records）或 Chrome 书签文件夹（bookmarks）
+  shared/env.js, compat.js     Chrome / Safari 差异
+mac/                           Mac App + Safari 扩展（Xcode 工程由 XcodeGen 从 project.yml 生成）
+  BKCore/                      共用核心：iCloud 存储、合并、Chrome 本地通信、注册
+  App/                         设置窗口；被 Chrome 拉起时进入本地通信模式
+  Extension/                   Safari 扩展的消息处理程序
+scripts/build.py               生成 dist/chrome、dist/safari（Xcode 构建时自动调用）
+scripts/release-mac.sh         签名、公证、打 DMG
+tests/                         JS 单测
+```
+
+常用命令：
+
+```bash
+npm test                                     # JS 单测（Node 20+）
+swift test --package-path mac/BKCore         # Swift 单测
+python3 scripts/build.py                     # 打包扩展到 dist/
+xcodegen generate --spec mac/project.yml     # 改了 project.yml 后重新生成 Xcode 工程
+```
+
+编译 Mac App 需要 Xcode 15+ 和付费 Apple 开发者账号（iCloud 容器只能用付费账号开通）：复制 `mac/Config/Signing.local.xcconfig.example` 为 `Signing.local.xcconfig` 填上自己的 Team ID，再在 `project.yml` 里把 `io.github.schaeferanjon` 换成你自己的前缀。发布流程见 [docs/RELEASING.md](docs/RELEASING.md)。
+
+未打包加载时，Chrome 设置页底部有「源码热重载」开关：勾选后 1 小时内改源文件自动重载扩展。
+
+## License
+
+MIT。新标签页的打开标签仪表盘改自 [Tab Out](https://github.com/zarazhangrui/tab-out)（MIT，见 `newtab/LICENSE-tab-out.md`）。

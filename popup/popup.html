@@ -89,7 +89,7 @@ body {
   text-align: center;
 }
 .quick-item:hover { background: var(--hover); }
-.quick-item img { width: 28px; height: 28px; border-radius: 6px; }
+.quick-item img { width: 28px; height: 28px; border-radius: 6px; object-fit: contain; }
 .quick-item .q-title {
   font-size: 11px;
   color: var(--fg);
@@ -141,19 +141,24 @@ body {
   width: 30px;
   height: 30px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-auto-rows: 1fr;
+  /* 固定像素而不是 1fr + 百分比：Safari 里百分比高度会按图片原始尺寸算，第二行被挤出框外 */
+  grid-template-columns: 11px 11px;
+  grid-template-rows: 11px 11px;
   gap: 2px;
   padding: 3px;
   box-sizing: border-box;
   background: var(--accent-soft);
   border-radius: 8px;
+  overflow: hidden;
+  align-content: start;
+  justify-content: start;
 }
 .collage img {
-  width: 100%;
-  height: 100%;
+  display: block;
+  width: 11px;
+  height: 11px;
   border-radius: 2px;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* 分组视图 */

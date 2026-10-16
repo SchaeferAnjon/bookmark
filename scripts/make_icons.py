@@ -59,8 +59,9 @@ def make_icon(size):
     return w, h, rows
 
 
-for size in (16, 48, 128):
-    w, h, rows = make_icon(size)
-    path = os.path.join(OUT_DIR, f"icon{size}.png")
-    write_png(path, w, h, rows)
-    print(f"wrote {path}")
+if __name__ == "__main__":  # make_app_icon.py 会 import 这里的函数
+    for size in (16, 48, 128):
+        w, h, rows = make_icon(size)
+        path = os.path.join(OUT_DIR, f"icon{size}.png")
+        write_png(path, w, h, rows)
+        print(f"wrote {path}")

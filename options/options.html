@@ -48,6 +48,20 @@
         <span id="status" class="status"></span>
       </div>
     </section>
+    <section class="card">
+      <h2>快捷书签同步</h2>
+      <p class="hint" id="sync-state">检测中…</p>
+    </section>
+    <section class="card">
+      <h2>备份与迁移</h2>
+      <p class="hint">「稍后再看」列表和 AI 配置只存在这个扩展里。从开发版换成应用商店版（或反过来）时扩展 ID 会变，新扩展读不到旧数据：先在旧版点「导出」，再到新版点「导入」。快捷书签存在 iCloud 或 Chrome 书签里，不需要导出。</p>
+      <div class="actions">
+        <button id="export" class="btn">导出</button>
+        <button id="import" class="btn">导入</button>
+        <input id="import-file" type="file" accept="application/json,.json" hidden />
+        <span id="backup-status" class="status"></span>
+      </div>
+    </section>
     <section class="card" id="dev-card" hidden>
       <h2>开发</h2>
       <label class="check">

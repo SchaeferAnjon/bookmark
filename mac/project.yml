@@ -1,0 +1,106 @@
+# XcodeGen 项目定义。改完运行 `xcodegen generate --spec mac/project.yml` 重新生成 BookmarkKeeper.xcodeproj
+# （生成的工程也提交在仓库里，只想编译的人不需要装 XcodeGen）。
+name: BookmarkKeeper
+options:
+  bundleIdPrefix: io.github.schaeferanjon
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+configFiles:
+  Debug: Config/Base.xcconfig
+  Release: Config/Base.xcconfig
+settings:
+  base:
+    MARKETING_VERSION: "0.8.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_HARDENED_RUNTIME: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: NO   # 构建脚本要读仓库里的扩展源码
+    DEAD_CODE_STRIPPING: YES
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+packages:
+  BKCore:
+    path: BKCore
+targets:
+  BookmarkKeeper:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+    dependencies:
+      - target: BookmarkKeeperExtension
+      - package: BKCore
+    # 不开沙盒：要往 Chrome 的 NativeMessagingHosts 目录写注册文件（Developer ID 分发允许）
+    entitlements:
+      path: App/BookmarkKeeper.entitlements
+      properties:
+        com.apple.developer.icloud-container-identifiers: [iCloud.io.github.schaeferanjon.BookmarkKeeper]
+        com.apple.developer.ubiquity-container-identifiers: [iCloud.io.github.schaeferanjon.BookmarkKeeper]
+        com.apple.developer.icloud-services: [CloudDocuments]
+        com.apple.developer.icloud-container-environment: Production
+        com.apple.security.application-groups: ["$(TeamIdentifierPrefix)io.github.schaeferanjon.BookmarkKeeper"]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: 书签管家
+        CFBundleName: BookmarkKeeper
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.productivity
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSHumanReadableCopyright: MIT License · github.com/SchaeferAnjon/bookmark
+        BKAppGroup: $(TeamIdentifierPrefix)io.github.schaeferanjon.BookmarkKeeper
+        BKExtensionBundleID: io.github.schaeferanjon.BookmarkKeeper.Extension
+        # 允许连接的 Chrome 扩展 ID：开发版（manifest.json 的 key 决定）+ 应用商店版（上架后填，见 docs/RELEASING.md）
+        BKChromeExtensionIDs:
+          - aggplciegellbdfnhcbefkdnjcgnhdef
+        BKChromeWebStoreURL: ""
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.schaeferanjon.BookmarkKeeper
+        PRODUCT_NAME: BookmarkKeeper
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+    postCompileScripts:
+      - name: Bundle Chrome extension
+        script: |
+          /usr/bin/python3 "${SRCROOT}/../scripts/build.py" --target chrome --out "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ChromeExtension"
+        basedOnDependencyAnalysis: false
+
+  BookmarkKeeperExtension:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Extension
+    dependencies:
+      - package: BKCore
+    entitlements:
+      path: Extension/Extension.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.developer.icloud-container-identifiers: [iCloud.io.github.schaeferanjon.BookmarkKeeper]
+        com.apple.developer.ubiquity-container-identifiers: [iCloud.io.github.schaeferanjon.BookmarkKeeper]
+        com.apple.developer.icloud-services: [CloudDocuments]
+        com.apple.developer.icloud-container-environment: Production
+        com.apple.security.application-groups: ["$(TeamIdentifierPrefix)io.github.schaeferanjon.BookmarkKeeper"]
+    info:
+      path: Extension/Info.plist
+      properties:
+        CFBundleDisplayName: 书签管家
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        BKAppGroup: $(TeamIdentifierPrefix)io.github.schaeferanjon.BookmarkKeeper
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.Safari.web-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SafariWebExtensionHandler
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.schaeferanjon.BookmarkKeeper.Extension
+        PRODUCT_NAME: BookmarkKeeper Extension
+    postCompileScripts:
+      - name: Bundle Safari extension resources
+        script: |
+          /usr/bin/python3 "${SRCROOT}/../scripts/build.py" --target safari --out "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
+        basedOnDependencyAnalysis: false

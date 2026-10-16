@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "书签管家 BookmarkKeeper",
-  "version": "0.7.0",
-  "description": "新标签页：打开标签按域名整理 + 搜索全部书签 + 快捷书签分组；一键清理失效链接；支持智谱 GLM / DeepSeek 智能整理书签",
-  "permissions": ["bookmarks", "storage", "favicon", "tabs", "contextMenus"],
+  "version": "0.8.0",
+  "description": "新标签页：打开标签按域名整理 + 快捷书签分组（经 Mac App 在 Chrome 与 Safari 间同步）+ 搜索全部书签；清理失效链接；AI 智能整理",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwU48oR+b/aeyIpn9kPiOLIoPtCWFuVdpdfDZqg4tByymM31vb8SLFXFQu81abowCxWLgfRVXMom4sGiMX1ALvZrovmNeyFqeq/dA5kq8Mz7h+e8nrvQ3LqJGmFmveXxO099y0c0oscrREWIw1qr39VmCEIOnAlcngPK9fMMFj7V1BbSlULRVfsCYXi7ZlK9R1IDyWYLvGZQKm3OqBXB4grq74rF/f7ytbwUFBrvd90itohiRtk0fSA/dRYh/6F/YOjCn51+kour9tqjeKHIUetuAIwayJlgC6Xr70GBOs5qU4z6cyp9hCvVZzipR697BiumK6GsEZYYrI2lLo+LU+wIDAQAB",
+  "permissions": ["bookmarks", "storage", "favicon", "tabs", "contextMenus", "nativeMessaging"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js",

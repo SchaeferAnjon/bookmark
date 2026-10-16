@@ -126,6 +126,8 @@
 </div>
 
 <!-- 打开标签仪表盘（来自 Tab Out，MIT，见 LICENSE-tab-out.md）——放最后，DOM 已就绪 -->
+<!-- Safari：让 chrome.* 指向 Promise 化的 browser.*，必须在其他脚本之前 -->
+<script src="../shared/compat.js"></script>
 <script src="app.js"></script>
 <!-- 书签面板：搜索全部书签 + 快捷书签（拖拽分组）+ 全部文件夹；模块脚本，延迟执行 -->
 <script type="module" src="bookmarks-panel.js"></script>

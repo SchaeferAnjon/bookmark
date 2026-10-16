@@ -1,15 +1,22 @@
 // 新标签页书签面板：搜索全部书签 + 快捷书签（拖拽合并分组 / 编辑）+ 全部文件夹（默认收起）
 // 插在打开标签仪表盘（app.js，来自 Tab Out）上方。模块脚本，DOM 已就绪。
-// 快捷书签与弹窗共用 shared/quicklinks.js（书签文件夹，随 Chrome 书签同步），搜索共用 shared/fuzzy.js。
-import { faviconUrl, shortTitle } from '../shared/util.js';
+// 快捷书签与弹窗共用 shared/quicklinks.js（装了 Mac App 存 iCloud，否则存 Chrome 书签文件夹），搜索共用 shared/fuzzy.js。
+// Safari 没有书签接口：只显示快捷书签，搜索 / 全部文件夹 / 整理书签 / 设置都不显示。
+import '../shared/compat.js';
+import { faviconUrl, shortTitle, installFaviconFallback, setSyncedIcons } from '../shared/util.js';
 import { searchBookmarks } from '../shared/fuzzy.js';
-import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE } from '../shared/quicklinks.js';
+import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, syncStatus, quickIcons, shareIcons, QUICK_FOLDER_TITLE } from '../shared/quicklinks.js';
+import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
 
 (function () {
   const CHIP_LIMIT = 8;                        // 文件夹卡片默认露出的链接数
   const RESULT_LIMIT = 50;
   const LS_COLLAPSED = 'bk.collapsed';         // 折叠的文件夹 id
   const LS_FOLDERS = 'bk.showFolders';         // 是否展开「全部文件夹」
+  const LS_QUICK = 'bk.quickCache';            // 快捷书签镜像：新标签页打开时先同步画出来，再异步校准
+  const LS_ICONS = 'bk.iconCache';             // Chrome 经 iCloud 同步来的网站图标（Safari 用）
+
+  installFaviconFallback();
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
@@ -59,13 +66,15 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
       text-decoration: none; color: var(--ink); transition: background .15s, transform .15s;
     }
     .bk-tile:hover { background: var(--card-bg); box-shadow: 0 2px 12px var(--shadow); }
-    .bk-tile img { width: 36px; height: 36px; border-radius: 8px; }
+    .bk-tile img { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; }
     .bk-tile .bk-t-title { font-size: 12px; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bk-tile.is-group .bk-collage {
       width: 36px; height: 36px; border-radius: 8px; background: var(--card-bg); border: 1px solid var(--warm-gray);
       display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; box-sizing: border-box;
     }
-    .bk-tile.is-group .bk-collage img { width: 100%; height: 100%; border-radius: 3px; }
+    /* 固定像素而不是 1fr + 百分比：Safari 里百分比高度会按图片原始尺寸算，第二行被挤出框外 */
+    .bk-tile.is-group .bk-collage { overflow: hidden; grid-template-columns: 13px 13px; grid-template-rows: 13px 13px; align-content: start; justify-content: start; }
+    .bk-tile.is-group .bk-collage img { display: block; width: 13px; height: 13px; object-fit: contain; border-radius: 3px; }
     .bk-tile.is-group.is-open { background: var(--card-bg); }
     .bk-group-row {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 4px;
@@ -126,6 +135,9 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
     }
     .bk-more:hover { color: var(--accent-amber); }
     .bk-empty { font-size: 13px; color: var(--muted); font-style: italic; padding: 24px 0; text-align: center; }
+    .bk-sync-note { font-size: 12px; color: var(--muted); margin: -2px 0 12px; }
+    .bk-sync-note.is-warn { color: var(--accent-amber); }
+    .bk-sync-note a { color: inherit; text-underline-offset: 2px; }
   `;
   document.head.appendChild(style);
 
@@ -139,28 +151,30 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
     <div class="section-header">
       <h2>Bookmarks</h2>
       <div class="section-line"></div>
-      <span class="bk-tools"><a href="../manager/manager.html">整理书签</a><a href="../options/options.html">设置</a></span>
+      ${HAS_BOOKMARKS ? '<span class="bk-tools" id="bkTools"><a href="../manager/manager.html">整理书签</a><a href="../options/options.html">设置</a></span>' : ''}
       <div class="section-count" id="bkCount"></div>
     </div>
-    <input class="bk-search" id="bkSearch" type="search" placeholder="搜索全部书签…" autocomplete="off" spellcheck="false">
-    <div class="bk-results" id="bkResults" style="display:none"></div>
+    ${HAS_BOOKMARKS ? `<input class="bk-search" id="bkSearch" type="search" placeholder="搜索全部书签…" autocomplete="off" spellcheck="false">
+    <div class="bk-results" id="bkResults" style="display:none"></div>` : ''}
     <div class="bk-quick-bar">
       <span class="bk-quick-label">快捷书签</span>
       <span class="bk-quick-hint">拖一个图标到另一个上 = 合并成分组</span>
       <button class="bk-edit-btn" id="bkEdit" type="button">编辑</button>
     </div>
+    <div class="bk-sync-note" id="bkSyncNote" hidden></div>
     <div class="bk-quick-grid" id="bkQuick"></div>
     <div class="bk-group-row" id="bkGroupRow" style="display:none"></div>
-    <button class="bk-folders-toggle" id="bkFoldersToggle" type="button">
+    ${HAS_BOOKMARKS ? `<button class="bk-folders-toggle" id="bkFoldersToggle" type="button">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
       <span id="bkFoldersLabel">All folders</span>
     </button>
-    <div class="bk-cards" id="bkCards" style="display:none"></div>`;
+    <div class="bk-cards" id="bkCards" style="display:none"></div>` : ''}`;
   anchor.parentNode.insertBefore(section, anchor);
 
   const $ = (id) => section.querySelector('#' + id);
   const searchEl = $('bkSearch'), resultsEl = $('bkResults'), quickEl = $('bkQuick'), groupRowEl = $('bkGroupRow');
   const countEl = $('bkCount'), cardsEl = $('bkCards'), foldersToggle = $('bkFoldersToggle'), foldersLabel = $('bkFoldersLabel');
+  const syncNoteEl = $('bkSyncNote');
 
   // ================= 搜索全部书签 =================
   const search = async (query) => searchBookmarks(query, await allBookmarks(), RESULT_LIMIT);
@@ -204,8 +218,8 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
     resultsEl.style.display = 'block';
   }
   let searchTimer;
-  searchEl.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 60); });
-  searchEl.addEventListener('keydown', (e) => {
+  searchEl?.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 60); });
+  searchEl?.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { searchEl.value = ''; runSearch(); return; }
     if (!results.length) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -226,10 +240,12 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
   const toast = (m) => { if (typeof showToast === 'function') showToast(m); };
 
   let loaded = []; // 上次读到/写入的样子，写入时据此判断哪些是用户删掉的
+  const writeCache = () => lsSet(LS_QUICK, quickLinks);
   async function saveQuick() {
     try {
       await saveQuickLinks(quickLinks, loaded);
       loaded = structuredClone(quickLinks);
+      writeCache();
     } catch (e) {
       toast('保存失败：' + (e.message || e));
       await loadQuick();
@@ -271,11 +287,50 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
     }
   }
   async function loadQuick() {
-    const fresh = await loadQuickLinks();
+    let fresh;
+    try {
+      fresh = await loadQuickLinks();
+    } catch (e) {
+      console.warn('[bk] 读取快捷书签失败', e);
+      showSyncNote();
+      return;
+    }
     loaded = structuredClone(fresh);
-    if (JSON.stringify(fresh) === JSON.stringify(quickLinks) && quickEl.childElementCount) return;
+    const icons = await quickIcons();
+    const iconsChanged = JSON.stringify(icons) !== JSON.stringify(lsGet(LS_ICONS, {}));
+    if (iconsChanged) {
+      setSyncedIcons(icons);
+      lsSet(LS_ICONS, icons);
+    }
+    // Chrome：把 Safari 还没有的图标补进 iCloud（不挡渲染）
+    const idle = globalThis.requestIdleCallback || ((f) => setTimeout(f, 300));
+    idle(() => shareIcons(fresh).catch((e) => console.warn('[bk] 同步图标失败', e)));
+    if (!iconsChanged && JSON.stringify(fresh) === JSON.stringify(quickLinks) && quickEl.childElementCount) return;
     quickLinks = fresh;
+    writeCache();
     renderQuick();
+  }
+
+  // ---- 同步方式提示：只在需要用户做点什么时出现 ----
+  async function showSyncNote() {
+    const s = await syncStatus();
+    const app = `<a href="${APP_DOWNLOAD_URL}" target="_blank" rel="noopener">BookmarkKeeper App</a>`;
+    const notes = {
+      local: ['iCloud 云盘没有打开：快捷书签只保存在这台 Mac 上，不会同步到其他电脑。', false],
+      error: [`连不上 ${app}。请先从「应用程序」打开一次 App。`, true],
+      chrome: s.lost ? [`连不上 ${app}，现在显示的是 Chrome 书签里的旧快捷书签。打开 App 检查一下。`, true] : null,
+    };
+    const note = notes[s.mode];
+    syncNoteEl.hidden = !note;
+    if (note) {
+      syncNoteEl.innerHTML = note[0];
+      syncNoteEl.classList.toggle('is-warn', note[1]);
+    }
+    // 只用 Chrome 书签同步时，顶部给个入口：装 App 后 Safari 也能用同一份快捷书签
+    const tools = $('bkTools');
+    if (s.mode === 'chrome' && !s.lost && tools && !tools.querySelector('[data-bk-app]')) {
+      tools.insertAdjacentHTML('afterbegin', `<a data-bk-app href="${APP_DOWNLOAD_URL}" target="_blank" rel="noopener" title="安装 Mac App 后，快捷书签经 iCloud 在 Chrome 和 Safari 之间同步">同步到 Safari</a>`);
+    }
   }
 
   // ---- 改名：标题换成输入框，失焦提交 ----
@@ -472,8 +527,8 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
     cardsEl.style.display = open ? 'block' : 'none';
     if (open && !foldersRendered) renderFolders();
   }
-  foldersToggle.addEventListener('click', () => setFoldersOpen(cardsEl.style.display === 'none'));
-  cardsEl.addEventListener('click', (e) => {
+  foldersToggle?.addEventListener('click', () => setFoldersOpen(cardsEl.style.display === 'none'));
+  cardsEl?.addEventListener('click', (e) => {
     const more = e.target.closest('[data-bk-more]');
     if (more) {
       const card = more.closest('.bk-card');
@@ -498,17 +553,26 @@ import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, QUICK_FOLDER_TITLE
     clearTimeout(refreshTimer);
     refreshTimer = setTimeout(() => { renderFolders(); if (searchEl.value.trim()) runSearch(); }, 300);
   };
-  for (const ev of ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered']) {
-    chrome.bookmarks[ev]?.addListener(onBookmarksChanged);
-  }
-  // 弹窗 / 快捷键 / 右键菜单 / 另一台机器同步来的改动，这里实时跟上；内容没变不重绘；编辑或改名中不打断
+  // 弹窗 / 快捷键 / 右键菜单 / 另一个浏览器或另一台机器同步来的改动，这里跟上；内容没变不重绘；编辑或改名中不打断
   onQuickLinksChanged(() => {
     if (editing || section.querySelector('.bk-rename')) return;
     loadQuick();
   });
 
-  renderFolders();                        // 顺便算出 header 的数量
-  setFoldersOpen(lsGet(LS_FOLDERS, false));
-  loadQuick();
+  if (HAS_BOOKMARKS) {
+    for (const ev of ['onCreated', 'onRemoved', 'onChanged', 'onMoved', 'onChildrenReordered']) {
+      chrome.bookmarks[ev]?.addListener(onBookmarksChanged);
+    }
+    renderFolders();                      // 顺便算出 header 的数量
+    setFoldersOpen(lsGet(LS_FOLDERS, false));
+  }
+
+  setSyncedIcons(lsGet(LS_ICONS, {}));
+  const cached = lsGet(LS_QUICK, null);   // 先画缓存，App 的回复（几十毫秒）到了再校准
+  if (Array.isArray(cached)) {
+    quickLinks = cached;
+    renderQuick();
+  }
+  loadQuick().then(showSyncNote);
 })();
 
