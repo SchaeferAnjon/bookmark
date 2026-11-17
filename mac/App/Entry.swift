@@ -9,6 +9,8 @@ import SwiftUI
 @main
 enum Entry {
     static func main() {
+        // E2E=1 是测试模式：窗口不出现在屏幕上、不碰 iCloud 和真浏览器的注册，见 TestMode.swift
+        TestMode.setUp()
         if ChromeHostInstaller.isHostInvocation() {
             NativeMessaging.runHost(bridge: Bridge(kind: "chrome", appGroup: AppInfo.appGroup))
             exit(0)
@@ -35,7 +37,8 @@ struct BookmarkKeeperApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    /// 测试模式的窗口一直排在屏幕外，系统会当成最后一个窗口关了，别跟着退
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { !TestMode.on }
 }
 
 enum AppInfo {

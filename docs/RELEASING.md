@@ -3,7 +3,7 @@
 ## 每次发布
 
 1. 改版本号（三处保持一致）：`manifest.json` 的 `version`、`package.json` 的 `version`、`mac/project.yml` 的 `MARKETING_VERSION`（并把 `CURRENT_PROJECT_VERSION` 加 1）。改了 `project.yml` 就运行 `xcodegen generate --spec mac/project.yml`。
-2. 跑测试：`npm test`，`swift test --package-path mac/BKCore`。
+2. 跑测试：`npm test`，`swift test --package-path mac/BKCore`，`mac/scripts/e2e-hidden-check.sh`（Mac App 的测试模式自检）。Mac App 测试和调试都用 `E2E=1` 启动（`E2E=1 BookmarkKeeper.app/Contents/MacOS/BookmarkKeeper`）：窗口不出现在屏幕上、不进程序坞，快捷书签和 Chrome 注册都写在临时目录，打开网址、访达、Safari 设置只记进 `record.jsonl`；`E2E_SNAPSHOT=<png>` 截窗口，`E2E_CLICKS` 点按钮，写法见 `mac/App/TestMode.swift`。
 3. 打 Mac 包：`scripts/release-mac.sh`。它会归档、用 Developer ID 签名、提交 Apple 公证、生成 `mac/build/release/BookmarkKeeper-<版本>.dmg`。
 4. GitHub 上新建 Release，标签 `v<版本>`，上传 DMG。Chrome 扩展包含在 App 里（也可以直接下载仓库源码加载），不上架应用商店。
 5. 在 `process.md` 记一笔。

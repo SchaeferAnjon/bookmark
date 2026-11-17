@@ -10,6 +10,7 @@
 		0CDDA4242C55FFA524897F09 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFC117476534C70C4DBA5556 /* AppModel.swift */; };
 		0F95ED8ABB23394CD2FD1131 /* BKCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8FBBC88B5F5589586999AC61 /* BKCore */; };
 		24769474208491E7A9A5DDAD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B412F83C7ABE1381BF91425 /* Assets.xcassets */; };
+		76D147F451029C971AC48C94 /* TestMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C7356C52CC3F39F7906FD9 /* TestMode.swift */; };
 		9020D33A8D0DBA9E593E52EB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13540B96AC7667A39A19C885 /* ContentView.swift */; };
 		A94813D39A10BF288EFA1F1B /* Entry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7970B33017FDFCEBD61BE2D /* Entry.swift */; };
 		CCECF4557060B01828D5EDF5 /* Diagnose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02AD9DA5F7CA84A679F3308D /* Diagnose.swift */; };
@@ -44,6 +45,7 @@
 
 /* Begin PBXFileReference section */
 		02AD9DA5F7CA84A679F3308D /* Diagnose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnose.swift; sourceTree = "<group>"; };
+		09C7356C52CC3F39F7906FD9 /* TestMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMode.swift; sourceTree = "<group>"; };
 		13540B96AC7667A39A19C885 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2B412F83C7ABE1381BF91425 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5B726232EFBBA198D06F57A9 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 				02AD9DA5F7CA84A679F3308D /* Diagnose.swift */,
 				B7970B33017FDFCEBD61BE2D /* Entry.swift */,
 				EC9AA9808EDF45B8B669977D /* Info.plist */,
+				09C7356C52CC3F39F7906FD9 /* TestMode.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -294,6 +297,7 @@
 				9020D33A8D0DBA9E593E52EB /* ContentView.swift in Sources */,
 				CCECF4557060B01828D5EDF5 /* Diagnose.swift in Sources */,
 				A94813D39A10BF288EFA1F1B /* Entry.swift in Sources */,
+				76D147F451029C971AC48C94 /* TestMode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
