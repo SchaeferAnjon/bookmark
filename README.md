@@ -4,6 +4,8 @@
 
 接管浏览器的新标签页：打开的标签按网站整理成卡片，上面是快捷书签和书签搜索。**快捷书签经 iCloud 在 Chrome、Safari 和你的所有 Mac 之间同步。**
 
+![新标签页：上面是快捷书签和书签搜索，下面是按网站分好的打开标签](docs/screenshots/newtab.jpg)
+
 - **Chrome 扩展**：完整功能。没装 Mac App 时也能单独用（快捷书签随 Chrome 书签同步，Windows 也可以）。
 - **Safari 扩展**：快捷书签 + 打开的标签。Safari 内存占用比 Chrome 小，适合日常浏览。
 - **Mac App**：负责把快捷书签存进你的 iCloud，让 Chrome 和 Safari 读写同一份。平时不用打开。

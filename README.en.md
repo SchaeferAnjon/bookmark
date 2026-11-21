@@ -4,6 +4,8 @@
 
 Replaces your browser's new tab page: open tabs grouped by site, with quick links and bookmark search on top. **Quick links sync through iCloud between Chrome, Safari and all your Macs.**
 
+![The new tab page: quick links and bookmark search on top, open tabs grouped by site below](docs/screenshots/newtab.jpg)
+
 - **Chrome extension** — full feature set. Works on its own without the Mac app (quick links then sync with Chrome bookmarks, Windows included).
 - **Safari extension** — quick links + open tabs. Safari uses less memory than Chrome, so it's nice for everyday browsing.
 - **Mac app** — stores quick links in your iCloud so Chrome and Safari share one copy. You don't need to keep it open.
