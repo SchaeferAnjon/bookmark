@@ -1,6 +1,6 @@
 import '../shared/compat.js';
-import { faviconUrl, debounce, collectAllBookmarks, shortTitle, installFaviconFallback, setSyncedIcons } from '../shared/util.js';
-import { searchBookmarks } from '../shared/fuzzy.js';
+import { faviconUrl, debounce, shortTitle, installFaviconFallback, setSyncedIcons } from '../shared/util.js';
+import { searchQuickLinks } from '../shared/fuzzy.js';
 import { HAS_BOOKMARKS } from '../shared/env.js';
 import { loadQuickLinks as readQuickLinks, saveQuickLinks as writeQuickLinks, onQuickLinksChanged, quickIcons } from '../shared/quicklinks.js';
 
@@ -55,28 +55,15 @@ const groupSection = $('#group-section');
 const groupGrid = $('#group-grid');
 const groupNameInput = $('#group-name');
 
-// Safari 没有书签接口：不显示「搜索全部书签」和底栏（整理书签 / 设置只在 Chrome 里有）
-if (!HAS_BOOKMARKS) {
-  document.querySelector('.topbar').style.display = 'none';
-  document.querySelector('.bottombar').style.display = 'none';
-}
+// 搜索只搜快捷书签（含分组里的每一条），和新标签页一样；搜不到时指去「整理书签」搜全部（用户 2026-11-22 定）。
+// Safari 没有书签接口：搜快捷书签照常，底栏（整理书签 / 设置只在 Chrome 里有）不显示
+if (!HAS_BOOKMARKS) document.querySelector('.bottombar').style.display = 'none';
 installFaviconFallback();
 // Safari：用新标签页存下的、Chrome 经 iCloud 同步来的网站图标（同一扩展的 localStorage）
 try { setSyncedIcons(JSON.parse(localStorage.getItem('bk.iconCache') || '{}')); } catch { /* 没有就算了 */ }
 
 let selectedIndex = -1;
 let currentResults = [];
-
-// ---------- 书签预取：用户开始打字才拉全部书签 ----------
-// 之前是打开后 800ms 内 idle 预取；机器内存吃紧时这份额外 IO 会和弹窗自身的资源加载抢，
-// 而多数点击只是点快捷格子、根本不搜索。现在第一次按键才取，搜索本身有 120ms 防抖兜底。
-
-let allBookmarksPromise = null;
-function ensureBookmarks() {
-  if (!allBookmarksPromise) allBookmarksPromise = collectAllBookmarks();
-  return allBookmarksPromise;
-}
-searchInput.addEventListener('keydown', () => ensureBookmarks(), { once: true });
 
 // ---------- 区块可见性 ----------
 
@@ -90,23 +77,37 @@ function updateSections() {
 
 // ---------- 搜索 ----------
 
-async function doSearch(query) {
-  if (!query.trim()) {
+function doSearch(query) {
+  const q = query.trim();
+  if (!q) {
     currentResults = [];
     selectedIndex = -1;
     updateSections();
     return;
   }
-  const all = await ensureBookmarks();
-  currentResults = searchBookmarks(query, all, 50);
+  currentResults = searchQuickLinks(q, quickLinks, 50);
   selectedIndex = currentResults.length ? 0 : -1;
-  renderResults();
+  renderResults(q);
   updateSections();
 }
 
-function renderResults() {
+const allSearchUrl = (q) => chrome.runtime.getURL(`manager/manager.html?q=${encodeURIComponent(q)}`);
+
+function renderResults(q) {
   resultsList.textContent = '';
   noResults.hidden = currentResults.length > 0;
+  if (!currentResults.length) {
+    noResults.textContent = `快捷书签里没有「${q}」`;
+    if (HAS_BOOKMARKS) {
+      const all = document.createElement('button');
+      all.type = 'button';
+      all.className = 'link-btn';
+      all.dataset.bkAll = '';
+      all.textContent = '在全部书签里找';
+      all.addEventListener('click', () => openUrl(allSearchUrl(q)));
+      noResults.append(all);
+    }
+  }
   currentResults.forEach((n, i) => {
     const li = document.createElement('li');
     li.className = 'result-item' + (i === selectedIndex ? ' selected' : '');
@@ -120,7 +121,12 @@ function renderResults() {
     title.textContent = n.title || n.url;
     const url = document.createElement('div');
     url.className = 'r-url';
-    url.textContent = n.url;
+    if (n.path) {
+      const g = document.createElement('b');
+      g.textContent = n.path;
+      url.append(g, ' · ');
+    }
+    url.append(n.url);
     text.append(title, url);
     li.append(img, text);
     li.addEventListener('click', () => openUrl(n.url));
@@ -136,15 +142,20 @@ function openUrl(url) {
 searchInput.addEventListener('input', debounce(() => doSearch(searchInput.value), 120));
 
 searchInput.addEventListener('keydown', (e) => {
+  // 搜不到时回车 = 点「在全部书签里找」（Safari 没有整理书签页，什么也不做）
+  if (e.key === 'Enter' && !currentResults.length && searchInput.value.trim() && HAS_BOOKMARKS) {
+    openUrl(allSearchUrl(searchInput.value.trim()));
+    return;
+  }
   if (!currentResults.length) return;
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     selectedIndex = (selectedIndex + 1) % currentResults.length;
-    renderResults();
+    renderResults(searchInput.value.trim());
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     selectedIndex = (selectedIndex - 1 + currentResults.length) % currentResults.length;
-    renderResults();
+    renderResults(searchInput.value.trim());
   } else if (e.key === 'Enter' && selectedIndex >= 0) {
     openUrl(currentResults[selectedIndex].url);
   }
@@ -206,6 +217,7 @@ async function refreshQuickLinks(force = false) {
   if (force || JSON.stringify(fresh) !== JSON.stringify(quickLinks)) {
     quickLinks = fresh;
     renderQuick();
+    if (searchInput.value.trim()) doSearch(searchInput.value); // 正在搜的结果跟着快捷书签变
   }
   writeCache();
 }

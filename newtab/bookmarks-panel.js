@@ -1,10 +1,11 @@
-// 新标签页书签面板：搜索全部书签 + 快捷书签（拖拽合并分组 / 编辑）+ 全部文件夹（默认收起）
+// 新标签页书签面板：搜索快捷书签 + 快捷书签（拖拽合并分组 / 编辑）+ 全部文件夹（默认收起）
 // 插在打开标签仪表盘（app.js，来自 Tab Out）上方。模块脚本，DOM 已就绪。
 // 快捷书签与弹窗共用 shared/quicklinks.js（装了 Mac App 存 iCloud，否则存 Chrome 书签文件夹），搜索共用 shared/fuzzy.js。
-// Safari 没有书签接口：只显示快捷书签，搜索 / 全部文件夹 / 整理书签 / 设置都不显示。
+// 搜索只搜快捷书签（含分组里的每一条），不搜整个书签树；搜不到时指去「整理书签」搜全部（用户 2026-11-22 定）。
+// Safari 没有书签接口：快捷书签和它的搜索照常，全部文件夹 / 整理书签 / 设置不显示。
 import '../shared/compat.js';
 import { faviconUrl, shortTitle, installFaviconFallback, setSyncedIcons } from '../shared/util.js';
-import { searchBookmarks } from '../shared/fuzzy.js';
+import { searchQuickLinks } from '../shared/fuzzy.js';
 import { loadQuickLinks, saveQuickLinks, onQuickLinksChanged, syncStatus, quickIcons, shareIcons, QUICK_FOLDER_TITLE } from '../shared/quicklinks.js';
 import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
 
@@ -30,6 +31,7 @@ import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
   const style = document.createElement('style');
   style.textContent = `
     .bk-section { margin-bottom: 8px; }
+    #bkSection .section-count:empty { display: none; } /* Safari 没有计数：别多占一段间隔，横线拉到头 */
     .bk-tools { display: inline-flex; gap: 12px; font-size: 12px; }
     .bk-tools a { color: var(--muted); text-decoration: none; }
     .bk-tools a:hover { color: var(--accent-amber); }
@@ -53,9 +55,11 @@ import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
     .bk-result img { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; }
     .bk-result .bk-r-text { min-width: 0; flex: 1; }
     .bk-result .bk-r-title { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .bk-result .bk-r-sub { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+    .bk-result .bk-r-sub { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
     .bk-result .bk-r-sub b { font-weight: 500; color: var(--accent-sage); }
-    .bk-noresult { padding: 18px 14px; font-size: 13px; color: var(--muted); font-style: italic; text-align: center; }
+    .bk-noresult { padding: 18px 14px; font-size: 13px; color: var(--muted); text-align: center; }
+    .bk-noresult a { color: var(--accent-amber); text-decoration: none; margin-left: 12px; white-space: nowrap; }
+    .bk-noresult a:hover { text-decoration: underline; text-underline-offset: 2px; }
     .bk-quick-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
       gap: 4px; margin-bottom: 8px;
@@ -154,8 +158,8 @@ import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
       ${HAS_BOOKMARKS ? '<span class="bk-tools" id="bkTools"><a href="../manager/manager.html">整理书签</a><a href="../options/options.html">设置</a></span>' : ''}
       <div class="section-count" id="bkCount"></div>
     </div>
-    ${HAS_BOOKMARKS ? `<input class="bk-search" id="bkSearch" type="search" placeholder="搜索全部书签…" autocomplete="off" spellcheck="false">
-    <div class="bk-results" id="bkResults" style="display:none"></div>` : ''}
+    <input class="bk-search" id="bkSearch" type="search" placeholder="搜索快捷书签…" autocomplete="off" spellcheck="false">
+    <div class="bk-results" id="bkResults" style="display:none"></div>
     <div class="bk-quick-bar">
       <span class="bk-quick-label">快捷书签</span>
       <span class="bk-quick-hint">拖一个图标到另一个上 = 合并成分组</span>
@@ -176,25 +180,14 @@ import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
   const countEl = $('bkCount'), cardsEl = $('bkCards'), foldersToggle = $('bkFoldersToggle'), foldersLabel = $('bkFoldersLabel');
   const syncNoteEl = $('bkSyncNote');
 
-  // ================= 搜索全部书签 =================
-  const search = async (query) => searchBookmarks(query, await allBookmarks(), RESULT_LIMIT);
-
-  let allPromise = null;
-  const allBookmarks = () => (allPromise ??= chrome.bookmarks.getTree().then((tree) => {
-    const list = [];
-    (function walk(nodes, path) {
-      for (const n of nodes) {
-        if (n.url) list.push({ id: n.id, title: n.title || n.url, url: n.url, path });
-        if (n.children) walk(n.children, n.title ? (path ? `${path} / ${n.title}` : n.title) : path);
-      }
-    })(tree, '');
-    return list;
-  }));
-
-  let results = [], selected = -1, searchSeq = 0;
-  function renderResults() {
+  // ================= 搜索快捷书签 =================
+  let results = [], selected = -1;
+  function renderResults(q) {
     if (!results.length) {
-      resultsEl.innerHTML = '<div class="bk-noresult">没有匹配的书签</div>';
+      const all = HAS_BOOKMARKS
+        ? `<a data-bk-all href="../manager/manager.html?q=${encodeURIComponent(q)}">在全部书签里找</a>`
+        : '';
+      resultsEl.innerHTML = `<div class="bk-noresult">快捷书签里没有「${esc(q)}」${all}</div>`;
       return;
     }
     resultsEl.innerHTML = results.map((b, i) => `
@@ -206,26 +199,25 @@ import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
         </div>
       </a>`).join('');
   }
-  async function runSearch() {
+  function runSearch() {
     const q = searchEl.value.trim();
     if (!q) { resultsEl.style.display = 'none'; results = []; selected = -1; return; }
-    const mine = ++searchSeq;
-    const found = await search(q);
-    if (mine !== searchSeq) return;          // 输入已变，丢弃过期结果
-    results = found;
+    results = searchQuickLinks(q, quickLinks, RESULT_LIMIT);
     selected = results.length ? 0 : -1;
-    renderResults();
+    renderResults(q);
     resultsEl.style.display = 'block';
   }
   let searchTimer;
-  searchEl?.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 60); });
-  searchEl?.addEventListener('keydown', (e) => {
+  searchEl.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 60); });
+  searchEl.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { searchEl.value = ''; runSearch(); return; }
+    // 搜不到时回车 = 点「在全部书签里找」（Safari 没有这个链接，什么也不做）
+    if (e.key === 'Enter' && !results.length) { resultsEl.querySelector('[data-bk-all]')?.click(); return; }
     if (!results.length) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       selected = (selected + (e.key === 'ArrowDown' ? 1 : -1) + results.length) % results.length;
-      renderResults();
+      renderResults(searchEl.value.trim());
       resultsEl.querySelector('.is-selected')?.scrollIntoView({ block: 'nearest' });
     } else if (e.key === 'Enter' && selected >= 0) {
       e.preventDefault();
@@ -269,6 +261,7 @@ import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
   }
   function renderQuick() {
     queueMicrotask(() => markAdded());
+    if (searchEl.value.trim()) runSearch(); // 正在搜的结果跟着快捷书签变
     section.classList.toggle('bk-editing', editing);
     editBtn.textContent = editing ? '完成' : '编辑';
     if (openGroup >= 0 && !isGroup(quickLinks[openGroup])) openGroup = -1;
@@ -549,9 +542,8 @@ import { HAS_BOOKMARKS, APP_DOWNLOAD_URL } from '../shared/env.js';
   // ================= 刷新 =================
   let refreshTimer;
   const onBookmarksChanged = () => {
-    allPromise = null;                 // 搜索索引下次按需重建
     clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(() => { renderFolders(); if (searchEl.value.trim()) runSearch(); }, 300);
+    refreshTimer = setTimeout(renderFolders, 300);
   };
   // 弹窗 / 快捷键 / 右键菜单 / 另一个浏览器或另一台机器同步来的改动，这里跟上；内容没变不重绘；编辑或改名中不打断
   onQuickLinksChanged(() => {
