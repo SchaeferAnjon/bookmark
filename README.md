@@ -27,7 +27,7 @@ Safari 没有给扩展开放书签接口，所以 Chrome 的书签本身（书�
 
 ### Mac（Chrome + Safari）
 
-1. 从 [Releases](https://github.com/SchaeferAnjon/bookmark/releases/latest) 下载 `BookmarkKeeper-<版本>.dmg`，把「BookmarkKeeper」拖进「应用程序」，打开一次。
+1. 从 [Releases](https://github.com/SchaeferAnjon/bookmark/releases/latest) 下载 `BookmarkKeeper-<版本>.dmg`，把「BookmarkKeeper」拖进「应用程序」，打开一次。App 签了名但没有经过 Apple 公证（作者的其他软件也一样）：第一次打开时 macOS 会说无法验证开发者。macOS 15 及以后，点「完成」，到「系统设置 › 隐私与安全性」往下找到 BookmarkKeeper，点「仍要打开」并输入密码；macOS 14 及更早，在访达里右键 BookmarkKeeper 选「打开」。只需要放行这一次。
 2. App 窗口里会显示三项状态：
    - **iCloud**：需要登录 Apple ID 并打开 iCloud 云盘。
    - **Safari**：点「在 Safari 中启用」，勾选「书签管家」。想让新标签页也用它：Safari →「设置」→「通用」→「新标签页打开方式」选「书签管家」。

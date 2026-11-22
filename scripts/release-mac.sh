@@ -1,20 +1,22 @@
 #!/bin/bash
-# 打包 Mac App 发布版：Developer ID 签名 → Apple 公证 → DMG。产物在 mac/build/release/。
+# 打包 Mac App 发布版：Developer ID 签名 →（可选）Apple 公证 → DMG。产物在 mac/build/release/。
+# 默认不公证（2026-11-22 用户定，和画布笔记一样）：第一次打开时在访达里右键「打开」，README 写了怎么做。
 #
 # 第一次用之前（每台电脑一次）：
 #   1. Xcode → Settings → Accounts 登录开发者账号，证书里有「Developer ID Application」
 #   2. mac/Config/Signing.local.xcconfig 写上 DEVELOPMENT_TEAM = 你的 Team ID
-#   3. 保存公证凭据（App 专用密码在 appleid.apple.com 生成）：
+#   3. 要公证时才需要：保存公证凭据（App 专用密码在 appleid.apple.com 生成），开发者账号的协议要签着：
 #        xcrun notarytool store-credentials bookmarkkeeper-notary --apple-id 你的AppleID --team-id 你的TeamID
 #
-# 用法：scripts/release-mac.sh            完整流程
-#       SKIP_NOTARIZE=1 scripts/release-mac.sh   只签名不公证（本机自测用）
+# 用法：scripts/release-mac.sh              签名、不公证（默认）
+#       NOTARIZE=1 scripts/release-mac.sh   签名并公证 App 和 DMG
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MAC="$ROOT/mac"
 OUT="$MAC/build/release"
 PROFILE="${NOTARY_PROFILE:-bookmarkkeeper-notary}"
+NOTARIZE="${NOTARIZE:-0}"
 TEAM="$(sed -n 's/^DEVELOPMENT_TEAM *= *//p' "$MAC/Config/Signing.local.xcconfig" 2>/dev/null | tr -d '[:space:]')"
 VERSION="$(/usr/bin/python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$ROOT/manifest.json")"
 
@@ -52,14 +54,14 @@ notarize() {
   xcrun notarytool submit "$1" --keychain-profile "$PROFILE" --wait
 }
 
-if [ -z "${SKIP_NOTARIZE:-}" ]; then
+if [ "$NOTARIZE" = 1 ]; then
   echo "▶ 4/5 公证 App（几分钟）"
   ditto -c -k --keepParent "$APP" "$OUT/BookmarkKeeper-notarize.zip"
   notarize "$OUT/BookmarkKeeper-notarize.zip"
   xcrun stapler staple "$APP"
   rm "$OUT/BookmarkKeeper-notarize.zip"
 else
-  echo "▶ 4/5 跳过公证（SKIP_NOTARIZE）"
+  echo "▶ 4/5 不公证（默认；要公证用 NOTARIZE=1）"
 fi
 
 echo "▶ 5/5 生成 DMG"
@@ -70,7 +72,7 @@ ln -s /Applications "$STAGE/Applications"
 DMG="$OUT/BookmarkKeeper-$VERSION.dmg"
 hdiutil create -volname "书签管家 BookmarkKeeper $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG" -quiet
 codesign --sign "Developer ID Application" --timestamp "$DMG"
-if [ -z "${SKIP_NOTARIZE:-}" ]; then
+if [ "$NOTARIZE" = 1 ]; then
   notarize "$DMG"
   xcrun stapler staple "$DMG"
   spctl --assess --type open --context context:primary-signature -v "$DMG"
@@ -85,5 +87,5 @@ rm -rf "$STAGE" "$OUT/export" "$OUT/ExportOptions.plist" "$OUT/BookmarkKeeper.xc
   "$MAC/build/dd/Build/Intermediates.noindex/ArchiveIntermediates"
 
 echo
-echo "完成：$DMG"
+echo "完成：$DMG$([ "$NOTARIZE" = 1 ] && echo "（已公证）" || echo "（签了名，没公证）")"
 echo "Chrome 扩展（已打包进 App）：$ROOT/dist/chrome"

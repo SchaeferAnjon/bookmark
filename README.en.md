@@ -27,7 +27,7 @@ Safari doesn't expose a bookmarks API to extensions, so Chrome's own bookmarks (
 
 ### Mac (Chrome + Safari)
 
-1. Download `BookmarkKeeper-<version>.dmg` from [Releases](https://github.com/SchaeferAnjon/bookmark/releases/latest), drag BookmarkKeeper into Applications and open it once.
+1. Download `BookmarkKeeper-<version>.dmg` from [Releases](https://github.com/SchaeferAnjon/bookmark/releases/latest), drag BookmarkKeeper into Applications and open it once. The app is signed but not notarized by Apple (the author's other apps are not either), so the first time you open it macOS says it cannot verify the developer. On macOS 15 and later, click Done, then go to System Settings › Privacy & Security, scroll down to BookmarkKeeper and click Open Anyway (enter your password). On macOS 14 and earlier, right-click BookmarkKeeper in Finder and choose Open. You only need to do this once.
 2. The app shows three checks:
    - **iCloud** — sign in to your Apple ID and turn on iCloud Drive.
    - **Safari** — click "Enable in Safari" and tick BookmarkKeeper. To use it for new tabs: Safari → Settings → General → New tabs open with → BookmarkKeeper.

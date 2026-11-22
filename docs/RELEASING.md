@@ -4,7 +4,7 @@
 
 1. 改版本号（三处保持一致）：`manifest.json` 的 `version`、`package.json` 的 `version`、`mac/project.yml` 的 `MARKETING_VERSION`（并把 `CURRENT_PROJECT_VERSION` 加 1）。改了 `project.yml` 就运行 `xcodegen generate --spec mac/project.yml`。
 2. 跑测试：`npm test`，`npm run e2e`（新标签页搜索的无头检查：全新浏览器资料 + 假书签，不碰本机 Chrome；Playwright 的浏览器版本对不上时加 `BK_CHROMIUM=<Chromium 可执行文件>`），`swift test --package-path mac/BKCore`，`mac/scripts/e2e-hidden-check.sh`（Mac App 的测试模式自检）。Mac App 测试和调试都用 `E2E=1` 启动（`E2E=1 BookmarkKeeper.app/Contents/MacOS/BookmarkKeeper`）：窗口不出现在屏幕上、不进程序坞，快捷书签和 Chrome 注册都写在临时目录，打开网址、访达、Safari 设置只记进 `record.jsonl`；`E2E_SNAPSHOT=<png>` 截窗口，`E2E_CLICKS` 点按钮，写法见 `mac/App/TestMode.swift`。
-3. 打 Mac 包：`scripts/release-mac.sh`。它会归档、用 Developer ID 签名、提交 Apple 公证、生成 `mac/build/release/BookmarkKeeper-<版本>.dmg`。
+3. 打 Mac 包：`scripts/release-mac.sh`。它会归档、用 Developer ID 签名、生成 `mac/build/release/BookmarkKeeper-<版本>.dmg`。**默认不公证**（2026-11-22 用户定，和画布笔记一样）：README 的安装那段写了第一次打开怎么放行，Release 说明里也写一句。要公证时用 `NOTARIZE=1 scripts/release-mac.sh`，需要下面「第一次发布」第 3 步的凭据，开发者账号的协议也要签着（协议过期时公证返回 403）。
 4. GitHub 上新建 Release，标签 `v<版本>`，上传 DMG。Chrome 扩展包含在 App 里（也可以直接下载仓库源码加载），不上架应用商店。
 5. 在 `process.md` 记一笔。
 
@@ -12,7 +12,7 @@
 
 1. Xcode → Settings → Accounts 登录付费开发者账号，「Manage Certificates」里要有 **Developer ID Application**。
 2. `cp mac/Config/Signing.local.xcconfig.example mac/Config/Signing.local.xcconfig`，填上 Team ID。
-3. 保存公证凭据。先到 <https://appleid.apple.com> →「登录与安全」→「App 专用密码」生成一个，然后在终端：
+3. 只在要公证（`NOTARIZE=1`）时需要：保存公证凭据。先到 <https://appleid.apple.com> →「登录与安全」→「App 专用密码」生成一个，然后在终端：
    ```bash
    xcrun notarytool store-credentials bookmarkkeeper-notary --apple-id <你的 Apple ID> --team-id <Team ID>
    ```
