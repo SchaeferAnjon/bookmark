@@ -1,6 +1,6 @@
 {
   "name": "bookmark-keeper",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "type": "module",
   "description": "书签管家：Chrome / Safari 扩展 + Mac App。扩展本身无构建步骤；此文件供 Node 跑单测（node --test）",
