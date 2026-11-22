@@ -15,8 +15,8 @@ Replaces your browser's new tab page: open tabs grouped by site, with your quick
 | New tab: open tabs grouped by site; close a group, dedupe, save for later | ✅ | ✅ |
 | Quick links: big icons, drag one onto another to make a group, rename / delete in edit mode | ✅ | ✅ |
 | Add a quick link without opening the popup: `Alt+Shift+B` or right-click "加入快捷书签" | ✅ | ✅ |
-| New tab search across your quick links, including every link inside a group | ✅ | ✅ |
-| Search all bookmarks (toolbar popup, organizer), browse all bookmark folders on the new tab | ✅ | — |
+| Search your quick links (including every link inside a group) from the new tab and the toolbar popup | ✅ | ✅ |
+| Search all bookmarks in the organizer (one click away when your quick links have no match), browse all bookmark folders on the new tab | ✅ | — |
 | Organizer: find dead links, AI-sort bookmarks by topic (Zhipu GLM / DeepSeek / any OpenAI-compatible API) | ✅ | — |
 
 Safari doesn't expose a bookmarks API to extensions, so Chrome's own bookmarks (the bookmarks bar) don't appear in Safari. What the two share is your quick links.

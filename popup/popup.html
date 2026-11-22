@@ -207,12 +207,25 @@ body {
   white-space: nowrap;
 }
 .result-item .r-url {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.result-item .r-url b { font-weight: 500; color: var(--fg); }
+.link-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  margin-left: 12px;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.link-btn:hover { text-decoration: underline; text-underline-offset: 2px; }
 
 .empty {
   color: var(--muted);
@@ -257,12 +270,12 @@ body {
 </head>
 <body>
   <header class="topbar">
-    <input id="search" type="search" placeholder="搜索全部书签…" autocomplete="off" autofocus />
+    <input id="search" type="search" placeholder="搜索快捷书签…" autocomplete="off" autofocus />
   </header>
 
   <section id="results-section" hidden>
     <ul id="results" class="result-list"></ul>
-    <p id="no-results" class="empty" hidden>没有匹配的书签</p>
+    <p id="no-results" class="empty" hidden></p>
   </section>
 
   <section id="quick-section">
