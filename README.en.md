@@ -2,7 +2,7 @@
 
 [中文](README.md)
 
-Replaces your browser's new tab page: open tabs grouped by site, with quick links and bookmark search on top. **Quick links sync through iCloud between Chrome, Safari and all your Macs.**
+Replaces your browser's new tab page: open tabs grouped by site, with your quick links on top and a search box that searches them (including the links inside groups). **Quick links sync through iCloud between Chrome, Safari and all your Macs.**
 
 - **Chrome extension** — full feature set. Works on its own without the Mac app (quick links then sync with Chrome bookmarks, Windows included).
 - **Safari extension** — quick links + open tabs. Safari uses less memory than Chrome, so it's nice for everyday browsing.
@@ -15,7 +15,8 @@ Replaces your browser's new tab page: open tabs grouped by site, with quick link
 | New tab: open tabs grouped by site; close a group, dedupe, save for later | ✅ | ✅ |
 | Quick links: big icons, drag one onto another to make a group, rename / delete in edit mode | ✅ | ✅ |
 | Add a quick link without opening the popup: `Alt+Shift+B` or right-click "加入快捷书签" | ✅ | ✅ |
-| Search all bookmarks, browse all bookmark folders | ✅ | — |
+| New tab search across your quick links, including every link inside a group | ✅ | ✅ |
+| Search all bookmarks (toolbar popup, organizer), browse all bookmark folders on the new tab | ✅ | — |
 | Organizer: find dead links, AI-sort bookmarks by topic (Zhipu GLM / DeepSeek / any OpenAI-compatible API) | ✅ | — |
 
 Safari doesn't expose a bookmarks API to extensions, so Chrome's own bookmarks (the bookmarks bar) don't appear in Safari. What the two share is your quick links.

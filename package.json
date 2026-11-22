@@ -6,6 +6,7 @@
   "description": "书签管家：Chrome / Safari 扩展 + Mac App。扩展本身无构建步骤；此文件供 Node 跑单测（node --test）",
   "scripts": {
     "test": "node --test tests/",
-    "build": "python3 scripts/build.py"
+    "build": "python3 scripts/build.py",
+    "e2e": "node tests/e2e/newtab-search.e2e.mjs"
   }
 }

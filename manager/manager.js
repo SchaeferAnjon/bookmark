@@ -140,6 +140,13 @@ allSearch.addEventListener('input', debounce(async () => {
   allTree.hidden = true;
 }, 150));
 
+// 新标签页只搜快捷书签，搜不到时带着词跳过来：manager.html?q=<词>
+const initialQuery = new URLSearchParams(location.search).get('q');
+if (initialQuery) {
+  allSearch.value = initialQuery;
+  allSearch.dispatchEvent(new Event('input'));
+}
+
 // ---------- 失效检测 ----------
 
 const scanBtn = $('#scan-btn');

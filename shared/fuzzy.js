@@ -96,3 +96,22 @@ export function searchBookmarks(query, bookmarks, limit = 50) {
   results.sort((a, b) => b._score - a._score);
   return results.slice(0, limit);
 }
+
+/**
+ * 新标签页的搜索：只在快捷书签里搜（顶层链接 + 分组里的每一条）。
+ * 分组名当作 path，按分组名也能搜到组里的书签；同一网址只出一次。
+ * @param {Array} quickLinks 界面列表：链接 { title, url }，分组 { type:'group', name, items }
+ */
+export function searchQuickLinks(query, quickLinks, limit = 50) {
+  const seen = new Set();
+  const list = [];
+  for (const it of quickLinks || []) {
+    const group = it?.type === 'group' && Array.isArray(it.items);
+    for (const l of group ? it.items : [it]) {
+      if (!l?.url || seen.has(l.url)) continue;
+      seen.add(l.url);
+      list.push({ title: l.title || l.url, url: l.url, path: group ? it.name || '' : '' });
+    }
+  }
+  return searchBookmarks(query, list, limit);
+}
